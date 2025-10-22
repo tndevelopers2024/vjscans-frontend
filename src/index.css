@@ -1,0 +1,223 @@
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+@import "tailwindcss";
+
+
+/* ===========================================
+   🎨 Global Variables (White Theme)
+=========================================== */
+:root {
+  --primary-color: #0961A1;  /* Deep Blue */
+  --primary-hover: #074e81;  /* Slightly darker blue */
+  --accent-color: #F98D1B;   /* Vibrant Orange */
+  --accent-hover: #e77f18;
+
+  --text-dark: #1e293b;      /* Slate-800 */
+  --text-gray: #64748b;      /* Slate-500 */
+  --bg-main: #ffffff;        /* Pure white */
+  --bg-light: #f9fafb;       /* Slightly off-white */
+  --border-color: #e2e8f0;   /* Light gray border */
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+/* ===========================================
+   🧱 Base Layout
+=========================================== */
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  font-family: "Mulish", sans-serif !important;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  scroll-behavior: smooth;
+}
+
+/* ===========================================
+   🌈 Color Utility Classes
+=========================================== */
+.text-primary {
+  color: var(--primary-color);
+}
+
+.text-accent {
+  color: var(--accent-color);
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.bg-accent {
+  background-color: var(--accent-color);
+}
+
+.border-primary {
+  border-color: var(--primary-color);
+}
+
+/* ===========================================
+   💎 MUI Harmony
+=========================================== */
+.MuiButton-root {
+  text-transform: none !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: 500 !important;
+}
+
+.MuiButton-containedPrimary {
+  background-color: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+.MuiButton-containedPrimary:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+.MuiButton-containedSecondary {
+  background-color: var(--accent-color) !important;
+  color: #fff !important;
+}
+
+.MuiButton-containedSecondary:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+.MuiCard-root {
+  border-radius: var(--radius-lg) !important;
+  background: var(--bg-main) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ===========================================
+   🌊 Scrollbar Styling
+=========================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-hover);
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f1f5f9;
+}
+
+/* ===========================================
+   ✨ Components & Effects
+=========================================== */
+.card-hover {
+  @apply transition-all duration-200 ease-in-out hover:shadow-lg hover:scale-[1.01];
+}
+
+.btn-primary {
+  @apply bg-[var(--primary-color)] text-white rounded-md px-4 py-2 font-medium transition hover:bg-[var(--primary-hover)];
+}
+
+.btn-accent {
+  @apply bg-[var(--accent-color)] text-white rounded-md px-4 py-2 font-medium transition hover:bg-[var(--accent-hover)];
+}
+
+.input-style {
+  @apply border border-gray-300 focus:border-[var(--primary-color)] rounded-md px-3 py-2 outline-none transition;
+}
+
+/* ===========================================
+   🧭 Layout Helpers
+=========================================== */
+.container-center {
+  @apply flex justify-center items-center min-h-screen;
+}
+
+.page-wrapper {
+  @apply bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-8;
+}
+
+/* ===========================================
+   💫 Typography
+=========================================== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+p {
+  color: var(--text-gray);
+}
+
+/* ===========================================
+   ⚙️ Animations
+=========================================== */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===========================================
+   🧱 Cards, Tables, and Shadows
+=========================================== */
+.card {
+  @apply bg-white border border-gray-200 rounded-xl shadow-sm p-4;
+}
+
+.card-title {
+  @apply text-lg font-semibold text-[var(--primary-color)];
+}
+
+.table-header {
+  @apply bg-[var(--primary-color)] text-white;
+}
+
+.table-row:hover {
+  @apply bg-blue-50;
+}
+
+/* ===========================================
+   📱 Responsive Utilities
+=========================================== */
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-open {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+#reader{
+  padding: 20px !important;
+}
