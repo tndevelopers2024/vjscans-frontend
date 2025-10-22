@@ -219,7 +219,7 @@ const PatientDetails = () => {
             {visit.status === "Completed" && visit.reportFileUrl && (
               <div className="mt-3 flex gap-3">
                 <a
-                  href={`http://localhost:5002${visit.reportFileUrl}`}
+                  href={`https://vj-scans.shop${visit.reportFileUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition"
