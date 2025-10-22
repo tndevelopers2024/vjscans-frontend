@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiHome,
   FiUsers,
@@ -12,13 +12,42 @@ import {
   FiCamera,
 } from "react-icons/fi";
 
-const Sidebar = ({ role }) => {
+const Sidebar = () => {
   const [openMenu, setOpenMenu] = useState(null);
+  const [role, setRole] = useState(null);
+  const navigate = useNavigate();
 
-  const handleToggle = (menuName) => {
-    setOpenMenu((prev) => (prev === menuName ? null : menuName));
+  // 🧠 Get user role from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setRole(parsedUser.role);
+      } catch (error) {
+        console.error("Invalid user data in localStorage:", error);
+        localStorage.removeItem("user");
+      }
+    }
+  }, []);
+
+  // 🔒 Logout function with confirmation
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Are you sure you want to log out?");
+    if (!confirmLogout) return;
+
+    // Clear auth data
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+
+    // Redirect to login
+    navigate("/", { replace: true });
+
+    // Optional: reload to reset state cleanly
+    window.location.reload();
   };
 
+  // 📋 Sidebar menu per role
   const menu = {
     Admin: [
       { name: "Dashboard", path: "/admin/dashboard", icon: <FiHome size={18} /> },
@@ -44,8 +73,7 @@ const Sidebar = ({ role }) => {
     ],
 
     Receptionist: [
-      { name: "Dashboard", path: "/receptionist", icon: <FiHome size={18} /> },
-     
+      { name: "Dashboard", path: "/receptionist/dashboard", icon: <FiHome size={18} /> },
       { name: "Scan Barcode", path: "/receptionist/scanner", icon: <FiCamera size={18} /> },
     ],
 
@@ -56,16 +84,19 @@ const Sidebar = ({ role }) => {
 
     Pathologist: [
       { name: "Dashboard", path: "/pathologist/dashboard", icon: <FiHome size={18} /> },
-      
       { name: "Scan Reports", path: "/pathologist/scanner", icon: <FiCamera size={18} /> },
     ],
   };
 
   const currentMenu = menu[role] || [];
 
+  const handleToggle = (menuName) => {
+    setOpenMenu((prev) => (prev === menuName ? null : menuName));
+  };
+
   return (
     <aside className="w-64 bg-white rounded-3xl shadow-md border border-gray-100 flex flex-col">
-      {/* Logo Section */}
+      {/* Logo */}
       <div className="flex items-center justify-center border-b border-gray-100 p-5">
         <img
           src="/img/logo/logo.jpg"
@@ -119,6 +150,7 @@ const Sidebar = ({ role }) => {
               </NavLink>
             )}
 
+            {/* Submenu */}
             {item.children && openMenu === item.name && (
               <div className="ml-6 mt-1 space-y-1 border-l border-gray-100 pl-3 animate-fadeIn">
                 {item.children.map((sub) => (
@@ -145,7 +177,10 @@ const Sidebar = ({ role }) => {
 
       {/* Logout Button */}
       <div className="p-4 border-t border-gray-100">
-        <button className="flex items-center gap-2 text-red-500 hover:bg-red-50 w-full py-2 rounded-xl justify-center transition">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-red-500 hover:bg-red-50 w-full py-2 rounded-xl justify-center transition"
+        >
           <FiLogOut size={18} />
           <span className="font-medium text-sm">Logout</span>
         </button>

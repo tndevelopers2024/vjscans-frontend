@@ -145,7 +145,9 @@ const PatientDetails = () => {
       {/* Patient Info */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-2">
         <h3 className="text-lg font-semibold text-gray-800">{patient.fullName}</h3>
-        <p className="text-gray-600">{patient.gender}, {patient.age} years</p>
+        <p className="text-gray-600">
+          {patient.gender}, {patient.age} years
+        </p>
         <p className="text-gray-600">Mobile: {patient.mobile || "N/A"}</p>
         <p className="text-gray-600">Email: {patient.email || "N/A"}</p>
       </div>
@@ -185,31 +187,36 @@ const PatientDetails = () => {
               Booked By: {visit.bookedBy} ({visit.bookingType})
             </p>
 
-            {visit.tests?.length > 0 && (
-              <>
-                <p className="font-medium mt-2">Tests:</p>
-                <ul className="list-disc list-inside text-sm">
-                  {visit.tests.map((t) => (
-                    <li key={t._id}>
-                      {t.name} – ₹{t.price}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            {/* ✅ Tests + Packages in one flex row */}
+            <div className="flex flex-col lg:flex-row gap-6 mt-3">
+              {/* Tests */}
+              {visit.tests?.length > 0 && (
+                <div className="flex-1">
+                  <p className="font-medium mb-2">Tests</p>
+                  <ul className="list-disc list-inside text-sm">
+                    {visit.tests.map((t) => (
+                      <li key={t._id}>
+                        {t.name} – ₹{t.price}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-            {visit.packages?.length > 0 && (
-              <>
-                <p className="font-medium mt-2">Packages:</p>
-                <ul className="list-disc list-inside text-sm">
-                  {visit.packages.map((p) => (
-                    <li key={p._id}>
-                      {p.name} – ₹{p.finalPrice}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+              {/* Packages */}
+              {visit.packages?.length > 0 && (
+                <div className="flex-1">
+                  <p className="font-medium mb-2">Packages</p>
+                  <ul className="list-disc list-inside text-sm">
+                    {visit.packages.map((p) => (
+                      <li key={p._id}>
+                        {p.name} – ₹{p.finalPrice}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
 
             <p className="font-semibold mt-3">
               Total Amount: ₹{visit.finalAmount}
@@ -227,15 +234,19 @@ const PatientDetails = () => {
                   <FaDownload /> Download Report
                 </a>
 
-               
+                <button
+                  onClick={() => handlePrintSingleVisit(visit)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                >
+                  <FaPrint /> Print Report
+                </button>
               </div>
             )}
           </div>
         ))}
       </div>
 
-      {/* Hidden Print Section for full patient report */}
-         {/* Hidden Print Layout */}
+      {/* Hidden Print Section */}
       <div style={{ display: "none" }}>
         <div ref={printRef} className="report-container">
           <div className="report-header">
@@ -251,10 +262,6 @@ const PatientDetails = () => {
             <p><strong>Age:</strong> {patient.age}</p>
             <p><strong>Mobile:</strong> {patient.mobile}</p>
             <p><strong>Email:</strong> {patient.email}</p>
-            <p>
-              <strong>Address:</strong> {patient.address}, {patient.city},{" "}
-              {patient.state} {patient.pincode}
-            </p>
           </div>
 
           {patient.visits?.map((visit) => (
@@ -263,39 +270,33 @@ const PatientDetails = () => {
               <p><strong>Status:</strong> {visit.status}</p>
               <p><strong>Booked By:</strong> {visit.bookedBy} ({visit.bookingType})</p>
 
-              {visit.tests?.length > 0 && (
-                <div className="visit-section">
-                  <strong>Tests:</strong>
-                  <ul>
-                    {visit.tests.map((t) => (
-                      <li key={t._id}>{t.name} – ₹{t.price}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {visit.packages?.length > 0 && (
-                <div className="visit-section">
-                  <strong>Packages:</strong>
-                  <ul>
-                    {visit.packages.map((p) => (
-                      <li key={p._id}>{p.name} – ₹{p.finalPrice}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div className="flex gap-4">
+                {visit.tests?.length > 0 && (
+                  <div>
+                    <strong>Tests:</strong>
+                    <ul>
+                      {visit.tests.map((t) => (
+                        <li key={t._id}>{t.name} – ₹{t.price}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {visit.packages?.length > 0 && (
+                  <div>
+                    <strong>Packages:</strong>
+                    <ul>
+                      {visit.packages.map((p) => (
+                        <li key={p._id}>{p.name} – ₹{p.finalPrice}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               <p><strong>Total:</strong> ₹{visit.finalAmount}</p>
 
               {/* Barcode */}
-              <div
-                style={{
-                  position: "relative",
-                  bottom: "-150px",
-                  right: "10px",
-                  textAlign: "center",
-                }}
-              >
+              <div style={{ marginTop: "20px", textAlign: "center" }}>
                 <Barcode
                   value={`${patient._id}-${visit.visitId}`}
                   height={45}

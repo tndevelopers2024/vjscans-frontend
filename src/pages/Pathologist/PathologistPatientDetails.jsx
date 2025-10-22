@@ -49,7 +49,7 @@ const PathologistPatientDetails = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-[#0961A1] flex items-center gap-2">
-         Visit Details
+          Visit Details
         </h2>
         <button
           onClick={() => setModalOpen(true)}
@@ -103,76 +103,79 @@ const PathologistPatientDetails = () => {
         </div>
       </div>
 
-      {/* Tests Section */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-[#0961A1] mb-3 flex items-center gap-2">
-          <FaVial /> Tests Included
-        </h3>
+      {/* Tests + Packages side by side */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Tests Section */}
+        <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+          <h3 className="text-lg font-semibold text-[#0961A1] mb-3 flex items-center gap-2">
+            <FaVial /> Tests Included
+          </h3>
 
-        {visit.tests?.length > 0 ? (
-          <table className="w-full text-sm text-gray-700">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="p-2 text-left">Test Name</th>
-                <th className="p-2 text-left">Sample Type</th>
-                <th className="p-2 text-left">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visit.tests.map((t, index) => (
-                <tr
-                  key={t._id}
-                  className={`border-t ${
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  }`}
-                >
-                  <td className="p-2">{t.name}</td>
-                  <td className="p-2">{t.sampleType || "N/A"}</td>
-                  <td className="p-2">₹{t.price}</td>
+          {visit.tests?.length > 0 ? (
+            <table className="w-full text-sm text-gray-700">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="p-2 text-left">Test Name</th>
+                  <th className="p-2 text-left">Sample Type</th>
+                  <th className="p-2 text-left">Price</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-gray-500 text-sm italic">
-            No tests added for this visit.
-          </p>
+              </thead>
+              <tbody>
+                {visit.tests.map((t, index) => (
+                  <tr
+                    key={t._id}
+                    className={`border-t ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    }`}
+                  >
+                    <td className="p-2">{t.name}</td>
+                    <td className="p-2">{t.sampleType || "N/A"}</td>
+                    <td className="p-2">₹{t.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-500 text-sm italic">
+              No tests added for this visit.
+            </p>
+          )}
+        </div>
+
+        {/* Packages Section */}
+        {visit.packages?.length > 0 && (
+          <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-[#0961A1] mb-3 flex items-center gap-2">
+              <FaBox /> Packages
+            </h3>
+            <table className="w-full text-sm text-gray-700">
+              <thead className="bg-gray-50 text-gray-600">
+                <tr>
+                  <th className="p-2 text-left">Package Name</th>
+                  <th className="p-2 text-left">Included Tests</th>
+                  <th className="p-2 text-left">Final Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visit.packages.map((pkg, index) => (
+                  <tr
+                    key={pkg._id}
+                    className={`border-t ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    }`}
+                  >
+                    <td className="p-2 font-medium">{pkg.name}</td>
+                    <td className="p-2">{pkg.tests?.length || 0}</td>
+                    <td className="p-2 text-[#0961A1] font-semibold">
+                      ₹{pkg.finalPrice}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
-
-      {/* Packages Section */}
-      {visit.packages?.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-[#0961A1] mb-3 flex items-center gap-2">
-            <FaBox /> Packages
-          </h3>
-          <table className="w-full text-sm text-gray-700">
-            <thead className="bg-gray-50 text-gray-600">
-              <tr>
-                <th className="p-2 text-left">Package Name</th>
-                <th className="p-2 text-left">Included Tests</th>
-                <th className="p-2 text-left">Final Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visit.packages.map((pkg, index) => (
-                <tr
-                  key={pkg._id}
-                  className={`border-t ${
-                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  }`}
-                >
-                  <td className="p-2 font-medium">{pkg.name}</td>
-                  <td className="p-2">{pkg.tests?.length || 0}</td>
-                  <td className="p-2 text-[#0961A1] font-semibold">
-                    ₹{pkg.finalPrice}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
 
       {/* Invoice Summary */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">

@@ -45,7 +45,7 @@ const Login = () => {
       >
         <div className="w-full max-w-md rounded-2xl p-8">
           <h2 className="text-center text-2xl font-semibold text-gray-800 mb-1">
-            Login to your <span className="text-blue-700">Prominent</span> Account
+            Login to your <span className="text-blue-700">VJScans</span> Account
           </h2>
           <p className="text-center text-gray-500 mb-6">
             Access your dashboard securely
