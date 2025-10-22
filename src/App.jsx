@@ -49,22 +49,6 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔐 Fetch current user from token
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await AuthAPI.getMe();
-        setUser(res.data.data);
-      } catch (err) {
-        console.warn("No active session");
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
-
   // 🔒 Protected Route Wrapper
   const ProtectedRoute = () => {
     if (loading)
