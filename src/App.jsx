@@ -16,10 +16,9 @@ import Footer from "./layouts/Footer";
 // Patient Management
 import PatientList from "./pages/Patients/PatientList";
 import PatientForm from "./pages/Patients/PatientForm";
-import PatientView from "./pages/Patients/PatientView";
 import PatientDetails from "./pages/Patients/PatientDetails";
 
-//pathologist Management
+// Pathologist Management
 import PathologistDashboard from "./pages/Pathologist/PathologistDashboard";
 import UpdateStatusModal from "./pages/Pathologist/UpdateStatusModal";
 import PathologistPatientDetails from "./pages/Pathologist/PathologistPatientDetails";
@@ -27,7 +26,6 @@ import PathologistPatientDetails from "./pages/Pathologist/PathologistPatientDet
 // Technician Management
 import TechnicianDashboard from "./pages/Technician/TechnicianDashboard";
 import TechnicianSampleDetails from "./pages/Technician/TechnicianSampleDetails";
-
 
 // Users Management
 import UserList from "./pages/Admin/UserList";
@@ -48,6 +46,23 @@ import "./index.css";
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // 🔹 Fetch user from localStorage on app start
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Invalid user data in localStorage:", error);
+        localStorage.removeItem("user");
+      }
+    }
+
+    setLoading(false);
+  }, []);
 
   // 🔒 Protected Route Wrapper
   const ProtectedRoute = () => {
@@ -81,12 +96,11 @@ const App = () => {
     );
   };
 
-
   return (
     <BrowserRouter>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Login setUser={setUser} />} />
 
         {/* =================== PROTECTED ROUTES =================== */}
         <Route element={<ProtectedRoute />}>
@@ -100,24 +114,32 @@ const App = () => {
           <Route path="/admin/users" element={<UserList />} />
           <Route path="/admin/users/new" element={<UserForm />} />
           <Route path="/admin/users/:id/edit" element={<UserForm />} />
-
           <Route path="/admin/tests" element={<TestList />} />
           <Route path="/admin/packages" element={<PackageList />} />
-          {/* You can later add technician & pathologist routes here */}
+
+          {/* Pathologist Routes */}
           <Route path="/pathologist/dashboard" element={<PathologistDashboard />} />
-          <Route path="/pathologist/patients/:patientId/visits/:visitId" element={<PathologistPatientDetails />} />
-          <Route path="/pathologist/patients/:patientId/visits/:visitId/tests/:testId/update-status" element={<UpdateStatusModal />} />
+          <Route
+            path="/pathologist/patients/:patientId/visits/:visitId"
+            element={<PathologistPatientDetails />}
+          />
+          <Route
+            path="/pathologist/patients/:patientId/visits/:visitId/tests/:testId/update-status"
+            element={<UpdateStatusModal />}
+          />
 
-<Route path="/admin/scanner" element={<BarcodeScanner role="Admin" />} />
+          {/* Barcode Scanners */}
+          <Route path="/admin/scanner" element={<BarcodeScanner role="Admin" />} />
           <Route path="/receptionist/scanner" element={<BarcodeScanner role="Receptionist" />} />
-<Route path="/technician/scanner" element={<BarcodeScanner role="Technician" />} />
-<Route path="/pathologist/scanner" element={<BarcodeScanner role="Pathologist" />} />
+          <Route path="/technician/scanner" element={<BarcodeScanner role="Technician" />} />
+          <Route path="/pathologist/scanner" element={<BarcodeScanner role="Pathologist" />} />
 
-<Route path="/technician/dashboard" element={<TechnicianDashboard />} />
-<Route
-  path="/technician/samples/:patientId/visits/:visitId"
-  element={<TechnicianSampleDetails />}
-/>
+          {/* Technician Routes */}
+          <Route path="/technician/dashboard" element={<TechnicianDashboard />} />
+          <Route
+            path="/technician/samples/:patientId/visits/:visitId"
+            element={<TechnicianSampleDetails />}
+          />
         </Route>
 
         {/* 404 Page */}
