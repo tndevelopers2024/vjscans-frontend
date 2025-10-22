@@ -1,14 +1,24 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+
+// API
 import { AuthAPI } from "./utils/api";
 
 // Auth
 import Login from "./pages/Auth/Login";
 
-// Dashboard pages
+// Dashboard Pages
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
+import PathologistDashboard from "./pages/Pathologist/PathologistDashboard";
+import TechnicianDashboard from "./pages/Technician/TechnicianDashboard";
 
-// Layout components
+// Layout Components
 import Navbar from "./layouts/Navbar";
 import Sidebar from "./layouts/Sidebar";
 import Footer from "./layouts/Footer";
@@ -19,27 +29,23 @@ import PatientForm from "./pages/Patients/PatientForm";
 import PatientDetails from "./pages/Patients/PatientDetails";
 
 // Pathologist Management
-import PathologistDashboard from "./pages/Pathologist/PathologistDashboard";
-import UpdateStatusModal from "./pages/Pathologist/UpdateStatusModal";
 import PathologistPatientDetails from "./pages/Pathologist/PathologistPatientDetails";
+import UpdateStatusModal from "./pages/Pathologist/UpdateStatusModal";
 
 // Technician Management
-import TechnicianDashboard from "./pages/Technician/TechnicianDashboard";
 import TechnicianSampleDetails from "./pages/Technician/TechnicianSampleDetails";
 
 // Users Management
 import UserList from "./pages/Admin/UserList";
 import UserForm from "./pages/Admin/UserForm";
 
-// Test Management
+// Tests & Packages
 import TestList from "./pages/TestList";
-
-// Package Management
 import PackageList from "./pages/PackageList";
 
 // Common
-import NotFound from "./pages/NotFound";
 import BarcodeScanner from "./pages/BarcodeScanner";
+import NotFound from "./pages/NotFound";
 
 import "./index.css";
 
@@ -47,20 +53,17 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Fetch user from localStorage on app start
+  // 🧠 Load user from localStorage on app start
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
     if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Invalid user data in localStorage:", error);
+        setUser(JSON.parse(storedUser));
+      } catch (err) {
+        console.error("Invalid user in localStorage:", err);
         localStorage.removeItem("user");
       }
     }
-
     setLoading(false);
   }, []);
 
@@ -80,14 +83,12 @@ const App = () => {
   // 🧱 Unified Layout (Navbar + Sidebar + Outlet)
   const Layout = ({ user }) => {
     const [pageTitle, setPageTitle] = useState("Dashboard");
-
     return (
       <div className="flex h-screen gap-6 bg-gray-50 p-6">
         <Sidebar role={user.role} />
         <div className="flex flex-col flex-1">
           <Navbar user={user} title={pageTitle} />
           <main className="flex-1 overflow-y-auto p-6">
-            {/* Pass setPageTitle down via Outlet context */}
             <Outlet context={{ setPageTitle }} />
           </main>
           <Footer />
@@ -99,47 +100,77 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Login setUser={setUser} />} />
+        {/* 🌐 Public Route */}
+        <Route path="/" element={<Login />} />
 
-        {/* =================== PROTECTED ROUTES =================== */}
+        {/* 🔒 Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          {/* Admin Dashboard */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
-          {/* Receptionist Dashboard */}
-          <Route path="/admin/patients" element={<PatientList />} />
-          <Route path="/admin/patients/add" element={<PatientForm />} />
-          <Route path="/admin/patients/:id" element={<PatientDetails />} />
-          <Route path="/admin/users" element={<UserList />} />
-          <Route path="/admin/users/new" element={<UserForm />} />
-          <Route path="/admin/users/:id/edit" element={<UserForm />} />
-          <Route path="/admin/tests" element={<TestList />} />
-          <Route path="/admin/packages" element={<PackageList />} />
-
-          {/* Pathologist Routes */}
-          <Route path="/pathologist/dashboard" element={<PathologistDashboard />} />
+          {/* Default redirect for logged-in users */}
           <Route
-            path="/pathologist/patients/:patientId/visits/:visitId"
-            element={<PathologistPatientDetails />}
-          />
-          <Route
-            path="/pathologist/patients/:patientId/visits/:visitId/tests/:testId/update-status"
-            element={<UpdateStatusModal />}
+            path=""
+            element={
+              user ? (
+                <Navigate
+                  to={`/${user.role.toLowerCase()}/dashboard`}
+                  replace
+                />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
           />
 
-          {/* Barcode Scanners */}
-          <Route path="/admin/scanner" element={<BarcodeScanner role="Admin" />} />
-          <Route path="/receptionist/scanner" element={<BarcodeScanner role="Receptionist" />} />
-          <Route path="/technician/scanner" element={<BarcodeScanner role="Technician" />} />
-          <Route path="/pathologist/scanner" element={<BarcodeScanner role="Pathologist" />} />
+          {/* =================== ADMIN ROUTES =================== */}
+          <Route path="admin">
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="patients" element={<PatientList />} />
+            <Route path="patients/add" element={<PatientForm />} />
+            <Route path="patients/:id" element={<PatientDetails />} />
+            <Route path="users" element={<UserList />} />
+            <Route path="users/new" element={<UserForm />} />
+            <Route path="users/:id/edit" element={<UserForm />} />
+            <Route path="tests" element={<TestList />} />
+            <Route path="packages" element={<PackageList />} />
+            <Route path="scanner" element={<BarcodeScanner role="Admin" />} />
+          </Route>
 
-          {/* Technician Routes */}
-          <Route path="/technician/dashboard" element={<TechnicianDashboard />} />
-          <Route
-            path="/technician/samples/:patientId/visits/:visitId"
-            element={<TechnicianSampleDetails />}
-          />
+          {/* ================= PATHOLOGIST ROUTES ================= */}
+          <Route path="pathologist">
+            <Route path="dashboard" element={<PathologistDashboard />} />
+            <Route
+              path="patients/:patientId/visits/:visitId"
+              element={<PathologistPatientDetails />}
+            />
+            <Route
+              path="patients/:patientId/visits/:visitId/tests/:testId/update-status"
+              element={<UpdateStatusModal />}
+            />
+            <Route
+              path="scanner"
+              element={<BarcodeScanner role="Pathologist" />}
+            />
+          </Route>
+
+          {/* ================= TECHNICIAN ROUTES ================= */}
+          <Route path="technician">
+            <Route path="dashboard" element={<TechnicianDashboard />} />
+            <Route
+              path="samples/:patientId/visits/:visitId"
+              element={<TechnicianSampleDetails />}
+            />
+            <Route
+              path="scanner"
+              element={<BarcodeScanner role="Technician" />}
+            />
+          </Route>
+
+          {/* ================ RECEPTIONIST ROUTES ================ */}
+          <Route path="receptionist">
+            <Route
+              path="scanner"
+              element={<BarcodeScanner role="Receptionist" />}
+            />
+          </Route>
         </Route>
 
         {/* 404 Page */}
