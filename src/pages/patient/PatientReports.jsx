@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PatientDashboardAPI } from "../../utils/api";
+import { PatientDashboardAPI } from "../../utils/patientApi";
 import { useNavigate } from "react-router-dom";
 import PatientLayout from "../../layouts/PatientLayout";
 import { FileText, ChevronRight } from "lucide-react";

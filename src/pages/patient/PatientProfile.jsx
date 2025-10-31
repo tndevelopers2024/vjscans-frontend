@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import PatientLayout from "../../layouts/PatientLayout";
-import { PatientAuthAPI } from "../../utils/api";
+import { PatientAuthAPI } from "../../utils/patientApi";
 import { User, Mail, Phone, Hash, LogOut } from "lucide-react";
 
 export default function PatientProfile() {

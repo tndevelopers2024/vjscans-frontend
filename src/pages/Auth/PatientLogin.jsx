@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { PatientAuthAPI } from "../../utils/api";
+import { PatientAuthAPI } from "../../utils/patientApi";
 import { useNavigate } from "react-router-dom";
 
 export default function PatientLogin() {
@@ -41,11 +41,10 @@ const handleVerifyOtp = async () => {
 
     if (token && patient) {
       // ✅ Store token
-     localStorage.setItem("patientData", JSON.stringify(patient));
-
+      localStorage.setItem("patientToken", token);
 
       // ✅ Store patient id
-localStorage.setItem("patientId", patient.id); 
+      localStorage.setItem("patientId", patient.id); 
 
       // ✅ Store full patient data
       localStorage.setItem("patientData", JSON.stringify(patient));

@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, List, FileText, User, LogOut } from "lucide-react";
-import { PatientAuthAPI } from "../utils/api";
+import { PatientAuthAPI } from "../utils/patientApi";
 
 export default function PatientLayout({ children }) {
   const navigate = useNavigate();

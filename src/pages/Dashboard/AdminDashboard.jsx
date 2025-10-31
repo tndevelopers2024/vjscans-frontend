@@ -1,280 +1,186 @@
-import React, { useEffect, useState } from "react";
-import { PatientAuthAPI, PatientAPI } from "../../utils/api";
-import { useNavigate } from "react-router-dom";
-import PatientLayout from "../../layouts/PatientLayout";
-import { ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
+import { PatientAPI, TestAPI, PackageAPI, UserAPI } from "../../utils/api";
+import {
+  FaUsers,
+  FaVial,
+  FaBoxOpen,
+  FaUserCog,
+  FaUserPlus,
+  FaClipboardList,
+} from "react-icons/fa";
 
-export default function PatientDashboard() {
-  const navigate = useNavigate();
-
-  const [patient, setPatient] = useState(null);
-  const [visits, setVisits] = useState([]);
+const AdminDashboard = () => {
+  const { setPageTitle } = useOutletContext();
+  const [stats, setStats] = useState({
+    patients: 0,
+    tests: 0,
+    packages: 0,
+    users: 0,
+  });
+  const [recentPatients, setRecentPatients] = useState([]);
+  const [recentTests, setRecentTests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDashboard();
+    setPageTitle("Admin Dashboard");
   }, []);
 
-  const loadDashboard = async () => {
-    try {
-      const me = await PatientAuthAPI.getMe();
-      setPatient(me.data.data);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [patientsRes, testsRes, packagesRes, usersRes] = await Promise.all([
+          PatientAPI.getAll(),
+          TestAPI.getAll(),
+          PackageAPI.getAll(),
+          UserAPI.getAll(),
+        ]);
 
-      const visitRes = await PatientAPI.getVisits(me.data.data._id);
-      setVisits(visitRes.data.data);
-    } catch (err) {
-      navigate("/patient/login");
-    }
-    setLoading(false);
-  };
+        setStats({
+          patients: patientsRes.data.data.length,
+          tests: testsRes.data.data.length,
+          packages: packagesRes.data.data.length,
+          users: usersRes.data.data.length,
+        });
 
-  if (loading) return <div style={styles.loading}>Loading dashboard...</div>;
+        setRecentPatients(patientsRes.data.data.slice(-5).reverse());
+        setRecentTests(testsRes.data.data.slice(-5).reverse());
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const totalVisits = visits.length;
-  const completedReports = visits.filter((v) => v.reportFileUrl).length;
-  const pendingReports = totalVisits - completedReports;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-[80vh]">
+        <div className="w-10 h-10 border-4 border-[#0961A1] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
 
   return (
-    <PatientLayout>
+    <div className="py-6 space-y-8">
+      {/* Header */}
       <div>
-        {/* ✅ PAGE HEADER */}
-        <div style={styles.header}>
-          <div>
-            <h1 style={styles.pageTitle}>Dashboard</h1>
-            <p style={styles.subtitle}>Welcome back, {patient.fullName}</p>
-          </div>
-        </div>
-
-        {/* ✅ STATS GRID */}
-        <div style={styles.statsGrid}>
-          <StatCard label="Total Visits" value={totalVisits} />
-          <StatCard label="Reports Ready" value={completedReports} />
-          <StatCard label="Pending Reports" value={pendingReports} />
-          <StatCard
-            label="Last Visit"
-            value={
-              visits[0]
-                ? new Date(visits[0].createdAt).toLocaleDateString()
-                : "—"
-            }
-          />
-        </div>
-
-        {/* ✅ QUICK ACCESS */}
-        <div style={styles.sectionCard}>
-          <h3 style={styles.sectionTitle}>Quick Access</h3>
-
-          <QuickItem
-            title="My Visits"
-            onClick={() => navigate("/patient/visits")}
-          />
-          <QuickItem
-            title="My Reports"
-            onClick={() => navigate("/patient/reports")}
-          />
-          <QuickItem
-            title="Profile"
-            onClick={() => navigate("/patient/profile")}
-          />
-        </div>
-
-        {/* ✅ RECENT VISITS */}
-        <div style={styles.sectionCard}>
-          <h3 style={styles.sectionTitle}>Recent Visits</h3>
-
-          {/* ✅ Mobile view */}
-          <div className="mobile-only">
-            {visits.map((v) => (
-              <div
-                key={v.visitId}
-                style={styles.cardMobile}
-                onClick={() => navigate(`/patient/visit/${v.visitId}`)}
-              >
-                <div>
-                  <p style={styles.visitId}>#{v.visitId}</p>
-                  <p style={styles.visitSub}>
-                    {v.tests?.length} tests • ₹{v.finalAmount}
-                  </p>
-
-                  <span
-                    style={{
-                      ...styles.statusBadge,
-                      background:
-                        v.status === "Report Ready"
-                          ? "#4ade80"
-                          : v.status === "Processing"
-                          ? "#fbbf24"
-                          : "#94a3b8",
-                    }}
-                  >
-                    {v.status}
-                  </span>
-                </div>
-
-                <ChevronRight size={20} color="#999" />
-              </div>
-            ))}
-          </div>
-
-          {/* ✅ Desktop table */}
-          <table style={styles.table} className="desktop-only">
-            <thead>
-              <tr>
-                <th>Visit ID</th>
-                <th>Status</th>
-                <th>Tests</th>
-                <th>Amount</th>
-                <th>Report</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {visits.map((v) => (
-                <tr key={v.visitId}>
-                  <td>#{v.visitId}</td>
-                  <td>{v.status}</td>
-                  <td>{v.tests?.length}</td>
-                  <td>₹{v.finalAmount}</td>
-                  <td>
-                    {v.reportFileUrl ? (
-                      <a href={v.reportFileUrl} style={styles.linkBlue}>
-                        Download
-                      </a>
-                    ) : (
-                      <span style={{ color: "#999" }}>Pending</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <h2 className="text-2xl font-semibold text-[#0961A1]">Welcome, Admin 👋</h2>
+        <p className="text-gray-500 mt-1">Here’s an overview of your lab activity</p>
       </div>
 
-      <style>{responsiveCSS}</style>
-    </PatientLayout>
-  );
-}
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Stat Card */}
+        <StatCard
+          title="Total Patients"
+          value={stats.patients}
+          icon={<FaUsers className="text-blue-500 text-2xl" />}
+          bg="bg-blue-50"
+        />
+        <StatCard
+          title="Total Tests"
+          value={stats.tests}
+          icon={<FaVial className="text-green-500 text-2xl" />}
+          bg="bg-green-50"
+        />
+        <StatCard
+          title="Packages"
+          value={stats.packages}
+          icon={<FaBoxOpen className="text-orange-500 text-2xl" />}
+          bg="bg-orange-50"
+        />
+        <StatCard
+          title="Users"
+          value={stats.users}
+          icon={<FaUserCog className="text-purple-500 text-2xl" />}
+          bg="bg-purple-50"
+        />
+      </div>
 
-/* ✅ Small reusable components */
-function StatCard({ label, value }) {
-  return (
-    <div style={styles.statCard}>
-      <p style={styles.statLabel}>{label}</p>
-      <h2 style={styles.statValue}>{value}</h2>
+      {/* Recent Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Patients */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-[#0961A1] flex items-center gap-2">
+              <FaUserPlus /> Recent Patients
+            </h3>
+          </div>
+
+          {recentPatients.length === 0 ? (
+            <p className="text-gray-500 text-sm">No patients found.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-700 font-medium">
+                <tr>
+                  <th className="p-3 text-left">Name</th>
+                  <th className="p-3 text-left">Gender</th>
+                  <th className="p-3 text-left">Age</th>
+                  <th className="p-3 text-left">City</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentPatients.map((p) => (
+                  <tr key={p._id} className="border-b hover:bg-blue-50 transition">
+                    <td className="p-3">{p.fullName}</td>
+                    <td className="p-3">{p.gender}</td>
+                    <td className="p-3">{p.age}</td>
+                    <td className="p-3">{p.city}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Recent Tests */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-[#0961A1] flex items-center gap-2">
+              <FaClipboardList /> Recent Tests
+            </h3>
+          </div>
+
+          {recentTests.length === 0 ? (
+            <p className="text-gray-500 text-sm">No tests available.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-700 font-medium">
+                <tr>
+                  <th className="p-3 text-left">Test Name</th>
+                  <th className="p-3 text-left">Sample Type</th>
+                  <th className="p-3 text-left">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentTests.map((t) => (
+                  <tr key={t._id} className="border-b hover:bg-blue-50 transition">
+                    <td className="p-3">{t.name}</td>
+                    <td className="p-3">{t.sampleType}</td>
+                    <td className="p-3">₹{t.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
-}
-
-function QuickItem({ title, onClick }) {
-  return (
-    <div style={styles.quickItem} onClick={onClick}>
-      <span>{title}</span>
-      <ChevronRight size={18} color="#777" />
-    </div>
-  );
-}
-
-/* ✅ Styles */
-const styles = {
-  loading: { padding: 40, textAlign: "center", fontSize: 18 },
-
-  header: {
-    marginBottom: 25,
-  },
-  pageTitle: {
-    margin: 0,
-    fontSize: 28,
-    fontWeight: 700,
-  },
-  subtitle: {
-    margin: 0,
-    marginTop: 5,
-    color: "#6b7280",
-  },
-
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-    gap: 20,
-    marginBottom: 30,
-  },
-
-  statCard: {
-    background: "#fff",
-    padding: 22,
-    borderRadius: 16,
-    boxShadow: "0 3px 10px rgba(0,0,0,0.06)",
-  },
-  statLabel: { margin: 0, color: "#6b7280", fontSize: 14 },
-  statValue: { margin: 0, fontSize: 28, fontWeight: 700, marginTop: 8 },
-
-  sectionCard: {
-    background: "#fff",
-    padding: 22,
-    borderRadius: 16,
-    boxShadow: "0 3px 10px rgba(0,0,0,0.06)",
-    marginBottom: 30,
-  },
-
-  sectionTitle: {
-    margin: 0,
-    marginBottom: 15,
-    fontSize: 20,
-  },
-
-  quickItem: {
-    padding: 15,
-    background: "#f5f6fa",
-    borderRadius: 12,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-    cursor: "pointer",
-  },
-
-  /* ✅ Mobile card view */
-  cardMobile: {
-    background: "#fff",
-    padding: 16,
-    borderRadius: 14,
-    boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
-    display: "flex",
-    justifyContent: "space-between",
-    marginBottom: 12,
-    cursor: "pointer",
-  },
-  visitId: { margin: 0, fontSize: 16, fontWeight: 600 },
-  visitSub: { margin: "4px 0", fontSize: 13, color: "#777" },
-
-  statusBadge: {
-    padding: "4px 10px",
-    borderRadius: 8,
-    color: "#fff",
-    fontSize: 12,
-    display: "inline-block",
-    marginTop: 5,
-  },
-
-  linkBlue: { color: "#2563eb", textDecoration: "underline" },
-
-  /* ✅ Desktop table */
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    marginTop: 10,
-    fontSize: 15,
-  },
 };
 
-/* ✅ RESPONSIVE CSS */
-const responsiveCSS = `
-  @media (max-width: 900px) {
-    .desktop-only { display: none; }
-    .mobile-only { display: block; }
-  }
-  @media (min-width: 900px) {
-    .mobile-only { display: none; }
-  }
-`;
+// Reusable Stat Card Component
+const StatCard = ({ title, value, icon, bg }) => (
+  <div
+    className={`flex items-center gap-4 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition p-5`}
+  >
+    <div className={`p-3 rounded-lg ${bg}`}>{icon}</div>
+    <div>
+      <h4 className="text-gray-500 text-sm font-medium">{title}</h4>
+      <p className="text-2xl font-semibold text-gray-800">{value}</p>
+    </div>
+  </div>
+);
+
+export default AdminDashboard;

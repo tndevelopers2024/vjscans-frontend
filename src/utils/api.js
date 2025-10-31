@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL || "https://vj-scans.shop/api";
+const BASE_URL =  "https://vj-scans.shop/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -125,37 +125,8 @@ export const FileAPI = {
     }),
 };
 
-export const PatientAuthAPI = {
-  sendOtp: (data) => api.post("/patient-auth/send-otp", data),
-  verifyOtp: (data) => api.post("/patient-auth/verify-otp", data),
-  getMe: () => api.get("/patient-auth/me"),
-  logout: () => api.get("/patient-auth/logout"),
-};
-
-export const PatientDashboardAPI = {
-  // ✅ Dashboard stats
-  getStats: (patientId) => api.get(`/patient/dashboard/${patientId}`),
-
-  // ✅ Visit List
-  getVisits: (patientId) => api.get(`/patient/visits/${patientId}`),
-
-  // ✅ Visit Details
-  getVisitDetails: (visitId) => api.get(`/patient/visit/${visitId}`),
-
-  // ✅ Reports List
-  getReports: (patientId) => api.get(`/patient/reports/${patientId}`),
-
-  // ✅ Report Details
-  getReportDetails: (reportId) => api.get(`/patient/report/${reportId}`),
-
-  // ✅ Secure Token Link Viewer
-  getReportByToken: (token) => api.get(`/patient/report/token/${token}`),
-};
-
-
 export default {
   AuthAPI,
-  PatientAuthAPI,
   UserAPI,
   TestAPI,
   PackageAPI,
@@ -166,5 +137,4 @@ export default {
   AuditAPI,
   SettingsAPI,
   FileAPI,
-   PatientDashboardAPI,
 };

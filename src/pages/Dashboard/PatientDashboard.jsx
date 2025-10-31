@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PatientAuthAPI, PatientAPI } from "../../utils/api";
+import { PatientAuthAPI, PatientDashboardAPI } from "../../utils/patientApi";
 import PatientLayout from "../../layouts/PatientLayout";
 import { useNavigate } from "react-router-dom";
 import { Home, FileText, User, List, ChevronRight } from "lucide-react";
@@ -11,16 +11,18 @@ export default function PatientDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    load();
+    loadData();
   }, []);
 
-  const load = async () => {
+  const loadData = async () => {
     try {
+      // ✅ Get logged-in patient
       const me = await PatientAuthAPI.getMe();
       setPatient(me.data.data);
 
-      const visitRes = await PatientAPI.getVisits(me.data.data._id);
-      setVisits(visitRes.data.data);
+      // ✅ Fetch patient visits
+      const visitRes = await PatientDashboardAPI.getVisits(me.data.data._id);
+      setVisits(visitRes.data.data || []);
     } catch (err) {
       navigate("/patient/login");
     }
@@ -30,7 +32,7 @@ export default function PatientDashboard() {
   if (loading) return <div className="p-10 text-lg">Loading...</div>;
 
   const totalVisits = visits.length;
-  const completedReports = visits.filter((v) => v.reportFileUrl).length;
+  const completedReports = visits.filter((v) => v?.reportFileUrl).length;
   const pendingReports = totalVisits - completedReports;
 
   return (
@@ -42,7 +44,6 @@ export default function PatientDashboard() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold">Dashboard</h1>
-              <p className="text-gray-500 mt-1">Welcome back, {patient.fullName}</p>
             </div>
 
             <div className="w-12 h-12 bg-white rounded-full shadow flex items-center justify-center">
@@ -122,7 +123,7 @@ export default function PatientDashboard() {
                 <tbody>
                   {visits.map((v) => (
                     <tr
-                      key={v.visitId}
+                      key={v._id}
                       className="border-b hover:bg-gray-50 transition"
                     >
                       <td className="p-3 font-medium text-gray-700">#{v.visitId}</td>
@@ -148,6 +149,8 @@ export default function PatientDashboard() {
                         {v.reportFileUrl ? (
                           <a
                             href={v.reportFileUrl}
+                            target="_blank"
+                            rel="noreferrer"
                             className="text-blue-600 hover:underline"
                           >
                             Download
@@ -166,7 +169,7 @@ export default function PatientDashboard() {
             <div className="md:hidden">
               {visits.map((v) => (
                 <div
-                  key={v.visitId}
+                  key={v._id}
                   className="bg-white border rounded-xl p-4 mb-3 shadow-sm flex justify-between items-center"
                   onClick={() => navigate(`/patient/visit/${v.visitId}`)}
                 >
