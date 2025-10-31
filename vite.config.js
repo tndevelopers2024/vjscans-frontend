@@ -39,7 +39,7 @@ export default defineConfig({
     // ✅ Optional proxy for local backend API
     proxy: {
       "/api": {
-        target: "http://localhost:5006", // your backend dev URL
+        target: "https://vj-scans.shop", // your backend dev URL
         changeOrigin: true,
         secure: false,
       },

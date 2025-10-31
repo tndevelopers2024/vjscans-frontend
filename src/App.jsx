@@ -36,6 +36,15 @@ import PackageList from "./pages/PackageList";
 import BarcodeScanner from "./pages/BarcodeScanner";
 import NotFound from "./pages/NotFound";
 
+//paitent login
+import PatientLogin from "./pages/Auth/PatientLogin";
+import PatientDashboard from "./pages/Dashboard/PatientDashboard";
+import PatientVisits from "./pages/patient/PatientVisits";
+import PatientVisitDetails from "./pages/patient/PatientVisitDetails";
+import PatientReports from "./pages/patient/PatientReports";
+import PatientReportViewer from "./pages/patient/PatientReportViewer";
+import PatientProfile from "./pages/patient/PatientProfile";
+
 import "./index.css";
 
 const App = () => {
@@ -99,6 +108,16 @@ const App = () => {
             }
           />
         )}
+
+        {/* Patient Login */}
+        <Route path="/patient/login" element={<PatientLogin />} />
+        <Route path="/patient/dashboard" element={<PatientDashboard />} />
+        <Route path="/patient/dashboard" element={<PatientDashboard />} />
+<Route path="/patient/visits" element={<PatientVisits />} />
+<Route path="/patient/visit/:visitId" element={<PatientVisitDetails />} />
+<Route path="/patient/reports" element={<PatientReports />} />
+<Route path="/patient/report/:reportId" element={<PatientReportViewer />} />
+<Route path="/patient/profile" element={<PatientProfile />} />
 
         {/* ==================== ADMIN ROUTES ==================== */}
         <Route
