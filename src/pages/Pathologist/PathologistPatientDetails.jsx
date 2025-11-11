@@ -27,9 +27,12 @@ const PathologistPatientDetails = () => {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    setPageTitle("Visit Details");
-  }, []);
+useEffect(() => {
+  if (visit) {
+    setPageTitle(`Visit Details ${visit.visitId}`);
+  }
+}, [visit]);
+
 
   const fetchVisit = async () => {
     try {
@@ -61,10 +64,8 @@ const PathologistPatientDetails = () => {
     <div className="space-y-8">
 
       {/* ✅ Sticky Header */}
-      <div className="flex justify-between items-center sticky top-0 z-20 py-1  ">
-        <h2 className="text-xl font-bold text-[#0961A1] flex items-center gap-2">
-          Visit Details – {visit.visitId}
-        </h2>
+      <div className="flex justify-end items-center sticky top-0 z-20 py-1  ">
+  
 
         <button
           onClick={() => setModalOpen(true)}

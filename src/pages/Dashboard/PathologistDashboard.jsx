@@ -11,15 +11,26 @@ const PathologistDashboard = () => {
 
   const [patients, setPatients] = useState([]);
   const [filtered, setFiltered] = useState([]);
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+
+  // ✅ NEW filters
+  const [dateFilter, setDateFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [testFilter, setTestFilter] = useState("all");
+  const [packageFilter, setPackageFilter] = useState("all");
+
+  // ✅ Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setPageTitle("Pathologist Dashboard");
-  }, []);
+  useEffect(() => setPageTitle("Pathologist Dashboard"), []);
 
-  // ✅ Fetch Patients
+  // ✅ Fetch Active Visits
   useEffect(() => {
     async function load() {
       try {
@@ -30,13 +41,13 @@ const PathologistDashboard = () => {
 
         all.forEach((p) => {
           p.visits?.forEach((v) => {
-            // ✅ Only show Booked, Pending, Collected
             if (["Booked", "Pending", "Collected"].includes(v.status)) {
               activeVisits.push({
                 patientId: p._id,
                 patientName: p.fullName,
                 visitId: v.visitId,
                 status: v.status,
+                visitDate: v.visitDate,
                 tests: v.tests?.length || 0,
                 packages: v.packages?.length || 0,
               });
@@ -44,7 +55,6 @@ const PathologistDashboard = () => {
           });
         });
 
-        // ✅ Prioritize Booked first
         const sortedVisits = [
           ...activeVisits.filter((v) => v.status === "Booked"),
           ...activeVisits.filter((v) => v.status !== "Booked"),
@@ -57,29 +67,79 @@ const PathologistDashboard = () => {
       }
       setLoading(false);
     }
-
     load();
   }, []);
 
-  // ✅ Filters
+  // ✅ Date filter logic
+  const matchDateFilter = (dateString) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const today = new Date();
+
+    switch (dateFilter) {
+      case "today":
+        return date.toDateString() === today.toDateString();
+
+      case "week":
+        const last7 = new Date();
+        last7.setDate(today.getDate() - 7);
+        return date >= last7;
+
+      case "month":
+        return (
+          date.getMonth() === today.getMonth() &&
+          date.getFullYear() === today.getFullYear()
+        );
+
+      case "custom":
+        if (!fromDate || !toDate) return true;
+        const start = new Date(fromDate);
+        const end = new Date(toDate);
+        end.setHours(23, 59, 59, 999);
+        return date >= start && date <= end;
+
+      default:
+        return true;
+    }
+  };
+
+  // ✅ Apply all filters
   useEffect(() => {
     let data = [...patients];
 
+    // Search
     if (search.trim()) {
       data = data.filter((v) =>
         v.patientName.toLowerCase().includes(search.toLowerCase())
       );
     }
 
+    // Status
     if (statusFilter !== "All") {
       data = data.filter((v) => v.status === statusFilter);
     }
 
-    setFiltered(data);
-  }, [search, statusFilter, patients]);
+    // Tests count
+    if (testFilter !== "all") {
+      data = data.filter((v) => v.tests == testFilter);
+    }
 
-  const bookedPatients = filtered.filter((v) => v.status === "Booked");
-  const otherPatients = filtered.filter((v) => v.status !== "Booked");
+    // Packages count
+    if (packageFilter !== "all") {
+      data = data.filter((v) => v.packages == packageFilter);
+    }
+
+    // Date filter
+    data = data.filter((v) => matchDateFilter(v.visitDate));
+
+    setFiltered(data);
+    setCurrentPage(1);
+  }, [search, statusFilter, testFilter, packageFilter, dateFilter, fromDate, toDate, patients]);
+
+  // ✅ Pagination Logic
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const paginatedList = filtered.slice(start, start + itemsPerPage);
 
   if (loading)
     return (
@@ -90,11 +150,12 @@ const PathologistDashboard = () => {
 
   return (
     <div className="space-y-8 pb-10">
-      {/* ✅ Filters Box */}
-      <div className="bg-white p-5 rounded-2xl shadow-md border border-gray-100 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
-        
-        {/* Search */}
-        <div className="flex items-center gap-3 border border-gray-300 rounded-xl px-4 py-2 w-full sm:w-1/3 bg-gray-50">
+
+      {/* ✅ FILTER BOX */}
+      <div className="bg-white p-5 rounded-2xl shadow-md border border-gray-100 space-y-4">
+
+        {/* ✅ Search */}
+        <div className="flex items-center gap-3 border border-gray-300 rounded-xl px-4 py-2 w-full bg-gray-50">
           <FaSearch className="text-gray-400" />
           <input
             type="text"
@@ -105,52 +166,138 @@ const PathologistDashboard = () => {
           />
         </div>
 
-        {/* Status Filter */}
-        <div className="flex items-center gap-3">
-          <FaFilter className="text-gray-500" />
+        {/* ✅ Filters Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+
+          {/* Status */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700 shadow-sm focus:ring-2 focus:ring-[#1E5FAF]"
+            className="border rounded-xl px-4 py-2 bg-white shadow-sm"
           >
             <option value="All">All Status</option>
             <option value="Booked">Booked</option>
             <option value="Pending">Pending</option>
             <option value="Collected">Collected</option>
           </select>
+
+          {/* Test Count */}
+          <select
+            value={testFilter}
+            onChange={(e) => setTestFilter(e.target.value)}
+            className="border rounded-xl px-4 py-2 bg-white shadow-sm"
+          >
+            <option value="all">All Test Counts</option>
+            <option value="1">1 Test</option>
+            <option value="2">2 Tests</option>
+            <option value="3">3 Tests</option>
+            <option value="4">4 Tests</option>
+            <option value="5">5 Tests</option>
+          </select>
+
+          {/* Package Count */}
+          <select
+            value={packageFilter}
+            onChange={(e) => setPackageFilter(e.target.value)}
+            className="border rounded-xl px-4 py-2 bg-white shadow-sm"
+          >
+            <option value="all">All Package Counts</option>
+            <option value="0">0 Packages</option>
+            <option value="1">1 Package</option>
+            <option value="2">2 Packages</option>
+            <option value="3">3 Packages</option>
+          </select>
+
+          {/* Date Filter */}
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="border rounded-xl px-4 py-2 bg-white shadow-sm"
+          >
+            <option value="all">All Dates</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="custom">Custom Range</option>
+          </select>
         </div>
-      </div>
 
-      {/* ✅ Newly Booked Section */}
-      {bookedPatients.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 bg-[#F0F6FF] border-b border-gray-200">
-            <h3 className="font-semibold text-[#1E5FAF]">Newly Booked Patients</h3>
-          </div>
-
-          <VisitTable list={bookedPatients} navigate={navigate} />
-        </div>
-      )}
-
-      {/* ✅ Other Active Patients */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-        
-        {bookedPatients.length > 0 && (
-          <div className="px-5 py-4 bg-[#F0F6FF] border-b border-gray-200">
-            <h3 className="font-semibold text-[#1E5FAF]">Other Active Patients</h3>
+        {/* ✅ Custom Date Range */}
+        {dateFilter === "custom" && (
+          <div className="flex gap-4">
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="px-4 py-2 border rounded-xl shadow bg-white"
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="px-4 py-2 border rounded-xl shadow bg-white"
+            />
           </div>
         )}
-
-        <VisitTable list={otherPatients} navigate={navigate} emptyLabel="No active patients." />
       </div>
+
+      {/* ✅ ACTIVE VISITS TABLE */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <VisitTable list={paginatedList} navigate={navigate} />
+      </div>
+
+      {/* ✅ PAGINATION */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+            className={`px-4 py-2 border rounded-lg ${
+              currentPage === 1
+                ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                : "text-[#1E5FAF] border-[#1E5FAF] hover:bg-[#1E5FAF] hover:text-white"
+            }`}
+          >
+            Prev
+          </button>
+
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCurrentPage(i + 1)}
+              className={`px-4 py-2 rounded-lg border ${
+                currentPage === i + 1
+                  ? "bg-[#1E5FAF] text-white border-[#1E5FAF]"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+            className={`px-4 py-2 border rounded-lg ${
+              currentPage === totalPages
+                ? "text-gray-400 border-gray-300 cursor-not-allowed"
+                : "text-[#1E5FAF] border-[#1E5FAF] hover:bg-[#1E5FAF] hover:text-white"
+            }`}
+          >
+            Next
+          </button>
+
+        </div>
+      )}
     </div>
   );
 };
 
 export default PathologistDashboard;
 
-/* ✅ Separated Table Component */
-const VisitTable = ({ list, navigate, emptyLabel }) => (
+/* ✅ Reusable Visit Table */
+const VisitTable = ({ list, navigate }) => (
   <div className="overflow-x-auto">
     <table className="min-w-full text-sm">
       <thead className="bg-[#F9FAFB] text-gray-700 font-medium">
@@ -165,62 +312,55 @@ const VisitTable = ({ list, navigate, emptyLabel }) => (
       </thead>
 
       <tbody>
-        {list.filter((v) =>
-          ["Booked", "Pending", "Collected"].includes(v.status)
-        ).length === 0 ? (
+        {list.length === 0 ? (
           <tr>
             <td colSpan="6" className="text-center py-6 text-gray-500">
-              {emptyLabel}
+              No active patients found.
             </td>
           </tr>
         ) : (
-          list
-            .filter((v) =>
-              ["Booked", "Pending", "Collected"].includes(v.status)
-            )
-            .map((v, i) => (
-              <tr
-                key={v.visitId}
-                className={`transition ${
-                  i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                } hover:bg-[#E7F0FF]`}
-              >
-                <td className="p-3 font-semibold text-gray-800">{v.patientName}</td>
-                <td className="p-3">{v.visitId}</td>
-                <td className="p-3">{v.tests}</td>
-                <td className="p-3">{v.packages}</td>
+          list.map((v, i) => (
+            <tr
+              key={v.visitId}
+              className={`transition ${
+                i % 2 === 0 ? "bg-white" : "bg-gray-50"
+              } hover:bg-[#E7F0FF]`}
+            >
+              <td className="p-3 font-semibold">{v.patientName}</td>
+              <td className="p-3">{v.visitId}</td>
+              <td className="p-3">{v.tests}</td>
+              <td className="p-3">{v.packages}</td>
 
-                <td className="p-3">
-                  <span
-                    className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      v.status === "Booked"
-                        ? "bg-green-100 text-green-700"
-                        : v.status === "Pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    {v.status}
-                  </span>
-                </td>
+              <td className="p-3">
+                <span
+                  className={`px-3 py-1 text-xs font-medium rounded-full ${
+                    v.status === "Booked"
+                      ? "bg-green-100 text-green-700"
+                      : v.status === "Pending"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  {v.status}
+                </span>
+              </td>
 
-                <td className="p-3 text-right">
-                  <button
-                    onClick={() =>
-                      navigate(
-                        `/pathologist/patients/${v.patientId}/visits/${v.visitId}`
-                      )
-                    }
-                    className="px-3 py-2 bg-white border border-[#1E5FAF] text-[#1E5FAF] rounded-lg shadow hover:bg-[#1E5FAF] hover:text-white flex items-center gap-2 ml-auto text-sm transition"
-                  >
-                    <FaEye /> View
-                  </button>
-                </td>
-              </tr>
-            ))
+              <td className="p-3 text-right">
+                <button
+                  onClick={() =>
+                    navigate(
+                      `/pathologist/patients/${v.patientId}/visits/${v.visitId}`
+                    )
+                  }
+                  className="px-3 py-2 bg-white border border-[#1E5FAF] text-[#1E5FAF] rounded-lg shadow hover:bg-[#1E5FAF] hover:text-white flex items-center gap-2 ml-auto text-sm transition"
+                >
+                  <FaEye /> View
+                </button>
+              </td>
+            </tr>
+          ))
         )}
       </tbody>
     </table>
   </div>
 );
-
