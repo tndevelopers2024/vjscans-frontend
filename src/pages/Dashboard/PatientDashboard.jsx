@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PatientAuthAPI, PatientDashboardAPI } from "../../utils/patientApi";
+import { PatientAuthAPI, PatientDashboardAPI,VisitAPI } from "../../utils/patientApi";
 import PatientLayout from "../../layouts/PatientLayout";
 import { useNavigate } from "react-router-dom";
 import { Home, FileText, User, List, ChevronRight } from "lucide-react";
@@ -7,32 +7,53 @@ import { Home, FileText, User, List, ChevronRight } from "lucide-react";
 export default function PatientDashboard() {
   const [patient, setPatient] = useState(null);
   const [visits, setVisits] = useState([]);
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async () => {
-    try {
-      // ✅ Get logged-in patient
-      const me = await PatientAuthAPI.getMe();
-      setPatient(me.data.data);
+const loadData = async () => {
+  try {
+    // ✅ Only restrict login redirect to getMe()
+    const me = await PatientAuthAPI.getMe();
+    setPatient(me.data.data);
 
-      // ✅ Fetch patient visits
-      const visitRes = await PatientDashboardAPI.getVisits(me.data.data._id);
+    const patientId = me.data.data._id;
+    // ✅ Visits API (even if fails, dashboard should still load)
+    try {
+      const visitRes = await VisitAPI.getPatientVisits(patientId);
       setVisits(visitRes.data.data || []);
-    } catch (err) {
-      navigate("/patient/login");
+    } catch (visitError) {
+      console.log("Visits loading failed", visitError);
+      setVisits([]); // safe fallback
     }
+
+    // ✅ Reports API (prevent redirect)
+    try {
+      const reportRes = await PatientDashboardAPI.getReports(patientId);
+      setReports(reportRes.data.data || []);
+    } catch (reportError) {
+      console.log("Reports loading failed", reportError);
+      setReports([]);
+    }
+
     setLoading(false);
-  };
+
+  } catch (err) {
+    // ✅ ONLY getMe() failure redirects
+    navigate("/patient/login");
+  }
+};
 
   if (loading) return <div className="p-10 text-lg">Loading...</div>;
 
+  /* ✅ Stats */
   const totalVisits = visits.length;
-  const completedReports = visits.filter((v) => v?.reportFileUrl).length;
+  const completedReports = reports.length;
   const pendingReports = totalVisits - completedReports;
 
   return (
@@ -42,16 +63,13 @@ export default function PatientDashboard() {
 
           {/* ✅ Header */}
           <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">Dashboard</h1>
-            </div>
-
+            <h1 className="text-3xl font-bold">Dashboard</h1>
             <div className="w-12 h-12 bg-white rounded-full shadow flex items-center justify-center">
               <User size={22} />
             </div>
           </div>
 
-          {/* ✅ Stats Grid */}
+          {/* ✅ Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
             <StatCard label="Total Visits" value={totalVisits} icon={<List />} />
             <StatCard label="Reports Ready" value={completedReports} icon={<FileText />} />
@@ -111,10 +129,11 @@ export default function PatientDashboard() {
             <div className="hidden md:block">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="text-left bg-gray-50 text-gray-800 rounded-lg">
+                  <tr className="text-left bg-gray-50 text-gray-800">
                     <th className="p-3 font-semibold">Visit ID</th>
                     <th className="p-3 font-semibold">Status</th>
                     <th className="p-3 font-semibold">Tests</th>
+                         <th className="p-3 font-semibold">Packages</th> 
                     <th className="p-3 font-semibold">Amount</th>
                     <th className="p-3 font-semibold">Report</th>
                   </tr>
@@ -122,10 +141,7 @@ export default function PatientDashboard() {
 
                 <tbody>
                   {visits.map((v) => (
-                    <tr
-                      key={v._id}
-                      className="border-b hover:bg-gray-50 transition"
-                    >
+                    <tr key={v._id} className="border-b hover:bg-gray-50 transition">
                       <td className="p-3 font-medium text-gray-700">#{v.visitId}</td>
 
                       <td className="p-3">
@@ -143,12 +159,13 @@ export default function PatientDashboard() {
                       </td>
 
                       <td className="p-3">{v.tests?.length}</td>
+                           <td className="p-3">{v.packages?.length || 0}</td>
                       <td className="p-3">₹{v.finalAmount}</td>
 
                       <td className="p-3">
-                        {v.reportFileUrl ? (
+                        {v.reportFile ? (
                           <a
-                            href={v.reportFileUrl}
+                            href={`https://vj-scans.shop${v.reportFile}`}
                             target="_blank"
                             rel="noreferrer"
                             className="text-blue-600 hover:underline"
@@ -171,10 +188,14 @@ export default function PatientDashboard() {
                 <div
                   key={v._id}
                   className="bg-white border rounded-xl p-4 mb-3 shadow-sm flex justify-between items-center"
-                  onClick={() => navigate(`/patient/visit/${v.visitId}`)}
+                  onClick={() => navigate(`/patient/visit/${patient._id}/${v._id}`)}
                 >
                   <div>
                     <p className="font-semibold text-gray-800">#{v.visitId}</p>
+                       <p className="text-sm text-gray-500">
+          {v.tests?.length || 0} tests • {v.packages?.length || 0} packages
+        </p>
+
                     <p className="text-sm text-gray-500">
                       {v.tests?.length} tests • ₹{v.finalAmount}
                     </p>
@@ -203,7 +224,7 @@ export default function PatientDashboard() {
   );
 }
 
-/* ✅ Tailwind Stat Card Component */
+/* ✅ Stats UI Component */
 function StatCard({ label, value, icon }) {
   return (
     <div className="flex items-center gap-4 bg-white rounded-2xl p-5 shadow hover:shadow-md transition">

@@ -1,26 +1,27 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { Form, Input, Button, Typography, message, Card } from "antd";
 import { AuthAPI } from "../../utils/api";
+
+const { Title, Text } = Typography;
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [form] = Form.useForm();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values) => {
     setLoading(true);
-    setErrorMsg("");
 
     try {
-      const res = await AuthAPI.login({ email, password });
+      const res = await AuthAPI.login(values);
       const { token, user } = res.data;
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+
+      message.success("Login successful!");
 
       if (user.role === "Admin") navigate("/admin/dashboard");
       else if (user.role === "Receptionist") navigate("/receptionist/dashboard");
@@ -28,7 +29,7 @@ const Login = () => {
       else if (user.role === "Pathologist") navigate("/pathologist/dashboard");
       else navigate("/");
     } catch (error) {
-      setErrorMsg(error.response?.data?.message || "Invalid credentials");
+      message.error(error.response?.data?.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -43,50 +44,57 @@ const Login = () => {
         transition={{ duration: 0.6 }}
         className="w-full md:w-1/2 flex items-center justify-center p-8"
       >
-        <div className="w-full max-w-md rounded-2xl p-8">
-          <h2 className="text-center text-2xl font-semibold text-gray-800 mb-1">
+        <Card className="w-full max-w-md rounded-2xl  p-8">
+          <Title level={3} className="text-center !mb-1">
             Login to your <span className="text-blue-700">VJScans</span> Account
-          </h2>
-          <p className="text-center text-gray-500 mb-6">
+          </Title>
+
+          <Text className="block text-center text-gray-500 mb-6">
             Access your dashboard securely
-          </p>
+          </Text>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Access Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Enter your email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Enter your key"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            {errorMsg && (
-              <p className="text-center text-red-600 text-sm">{errorMsg}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-700 hover:bg-blue-800 text-white font-medium py-2 rounded-lg transition-colors"
+          <Form
+            layout="vertical"
+            form={form}
+            onFinish={handleSubmit}
+            className="space-y-1"
+          >
+            <Form.Item
+              label="Access Email"
+              name="email"
+              rules={[
+                { required: true, message: "Please enter your email" },
+                { type: "email", message: "Enter a valid email" },
+              ]}
             >
-              {loading ? "Signing In..." : "Sign In"}
-            </button>
+              <Input
+                size="large"
+                placeholder="Enter your email"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Password"
+              name="password"
+              rules={[{ required: true, message: "Please enter your password" }]}
+            >
+              <Input.Password
+                size="large"
+                placeholder="Enter your key"
+                className="rounded-lg"
+              />
+            </Form.Item>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              size="large"
+              className="w-full !bg-blue-700 hover:!bg-blue-800 rounded-lg mt-2"
+            >
+              Sign In
+            </Button>
 
             <div className="text-center mt-4 space-y-1">
               <p
@@ -101,17 +109,16 @@ const Login = () => {
               >
                 Forgot Password?
               </p>
-         
             </div>
 
             <p className="text-xs text-gray-400 text-center mt-6">
-              By logging into the Prominent application you are agreeing to the{" "}
+              By logging into the Prominent application you agree to the{" "}
               <span className="text-blue-600 underline cursor-pointer">
                 Terms & Conditions
               </span>
             </p>
-          </form>
-        </div>
+          </Form>
+        </Card>
       </motion.div>
 
       {/* Right Section - Illustration */}

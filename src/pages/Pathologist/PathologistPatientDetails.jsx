@@ -4,6 +4,21 @@ import { PatientAPI } from "../../utils/api";
 import { FaFlask, FaFileInvoice, FaVial, FaBox } from "react-icons/fa";
 import UpdateStatusModal from "./UpdateStatusModal";
 
+const BRAND = "#0961A1";
+
+const badgeColor = (status) => {
+  switch (status) {
+    case "Processing":
+      return "bg-yellow-100 text-yellow-700";
+    case "Collected":
+      return "bg-blue-100 text-blue-700";
+    case "Report Ready":
+      return "bg-green-100 text-green-700";
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+};
+
 const PathologistPatientDetails = () => {
   const { patientId, visitId } = useParams();
   const { setPageTitle } = useOutletContext();
@@ -40,163 +55,103 @@ const PathologistPatientDetails = () => {
     );
 
   if (!visit)
-    return (
-      <div className="p-6 text-gray-600">Visit details not found.</div>
-    );
+    return <div className="p-6 text-gray-600">Visit not found.</div>;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-[#0961A1] flex items-center gap-2">
-          Visit Details
+    <div className="space-y-8">
+
+      {/* ✅ Sticky Header */}
+      <div className="flex justify-between items-center sticky top-0 z-20 py-1  ">
+        <h2 className="text-xl font-bold text-[#0961A1] flex items-center gap-2">
+          Visit Details – {visit.visitId}
         </h2>
+
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-[#0961A1] text-white px-4 py-2 rounded-lg hover:bg-[#0b4e7d] transition font-medium"
+          className="bg-[#0961A1] text-white px-4 py-2 rounded-lg hover:bg-[#0b4e7d] transition font-medium shadow-sm"
         >
           Update Status
         </button>
       </div>
 
-      {/* Main Visit Info */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-gray-700">
-          <div>
-            <span className="block text-gray-500 text-xs">Visit ID</span>
-            <span className="font-medium">{visit.visitId}</span>
-          </div>
-          <div>
-            <span className="block text-gray-500 text-xs">Status</span>
-            <span
-              className={`px-3 py-1 text-xs font-medium rounded-full ${
-                visit.status === "Processing"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : visit.status === "Collected"
-                  ? "bg-blue-100 text-blue-700"
-                  : visit.status === "Report Ready"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              {visit.status}
-            </span>
-          </div>
-          <div>
-            <span className="block text-gray-500 text-xs">Booking Type</span>
-            <span className="font-medium">{visit.bookingType}</span>
-          </div>
-          <div>
-            <span className="block text-gray-500 text-xs">Payment Type</span>
-            <span className="font-medium">{visit.paymentMode || "N/A"}</span>
-          </div>
-          <div>
-            <span className="block text-gray-500 text-xs">Total Amount</span>
-            <span className="font-semibold text-[#0961A1]">
-              ₹{visit.finalAmount}
-            </span>
-          </div>
-          <div>
-            <span className="block text-gray-500 text-xs">Discount</span>
-            <span>{visit.discount ? `${visit.discount}%` : "0%"}</span>
-          </div>
+      {/* ✅ VISIT INFO CARD */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
+        <h3 className="text-lg font-semibold text-[#0961A1] mb-4">Visit Information</h3>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 text-sm">
+
+          <InfoItem label="Visit ID" value={visit.visitId} />
+          <InfoItem
+            label="Status"
+            value={<span className={`px-3 py-1 rounded-full text-xs font-medium ${badgeColor(visit.status)}`}>{visit.status}</span>}
+          />
+          <InfoItem label="Booking Type" value={visit.bookingType} />
+          <InfoItem label="Payment Mode" value={visit.paymentMode || "N/A"} />
+          <InfoItem label="Discount" value={visit.discount ? visit.discount + "%" : "0%"} />
+
+          <InfoItem
+            label="Final Amount"
+            value={<span className="text-[#0961A1] font-semibold text-base">₹{visit.finalAmount}</span>}
+          />
         </div>
       </div>
 
-      {/* Tests + Packages side by side */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Tests Section */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-semibold text-[#0961A1] mb-3 flex items-center gap-2">
-            <FaVial /> Tests Included
-          </h3>
+      {/* ✅ TESTS + PACKAGES GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {visit.tests?.length > 0 ? (
-            <table className="w-full text-sm text-gray-700">
-              <thead className="bg-gray-50 text-gray-600">
-                <tr>
-                  <th className="p-2 text-left">Test Name</th>
-                  <th className="p-2 text-left">Sample Type</th>
-                  <th className="p-2 text-left">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visit.tests.map((t, index) => (
-                  <tr
-                    key={t._id}
-                    className={`border-t ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
-                  >
-                    <td className="p-2">{t.name}</td>
-                    <td className="p-2">{t.sampleType || "N/A"}</td>
-                    <td className="p-2">₹{t.price}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* ✅ Tests */}
+        <CardBox title="Tests Included" icon={<FaVial className="text-[#0961A1]" />}>
+          {visit.tests?.length ? (
+            <StyledTable
+              headers={["Test Name", "Sample", "Price"]}
+              rows={visit.tests.map((t) => [
+                t.name,
+                t.sampleType || "N/A",
+                "₹" + t.price,
+              ])}
+            />
           ) : (
-            <p className="text-gray-500 text-sm italic">
-              No tests added for this visit.
-            </p>
+            <NoData text="No tests added for this visit." />
           )}
-        </div>
+        </CardBox>
 
-        {/* Packages Section */}
-        {visit.packages?.length > 0 && (
-          <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-[#0961A1] mb-3 flex items-center gap-2">
-              <FaBox /> Packages
-            </h3>
-            <table className="w-full text-sm text-gray-700">
-              <thead className="bg-gray-50 text-gray-600">
-                <tr>
-                  <th className="p-2 text-left">Package Name</th>
-                  <th className="p-2 text-left">Included Tests</th>
-                  <th className="p-2 text-left">Final Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visit.packages.map((pkg, index) => (
-                  <tr
-                    key={pkg._id}
-                    className={`border-t ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
-                  >
-                    <td className="p-2 font-medium">{pkg.name}</td>
-                    <td className="p-2">{pkg.tests?.length || 0}</td>
-                    <td className="p-2 text-[#0961A1] font-semibold">
-                      ₹{pkg.finalPrice}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {/* ✅ Packages */}
+        <CardBox title="Packages" icon={<FaBox className="text-[#0961A1]" />}>
+          {visit.packages?.length ? (
+            <StyledTable
+              headers={["Package Name", "Tests Included", "Final Price"]}
+              rows={visit.packages.map((pkg) => [
+                pkg.name,
+                pkg.tests?.length || 0,
+                "₹" + pkg.finalPrice,
+              ])}
+            />
+          ) : (
+            <NoData text="No packages added." />
+          )}
+        </CardBox>
       </div>
 
-      {/* Invoice Summary */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-        <h3 className="text-lg font-semibold text-[#0961A1] mb-3 flex items-center gap-2">
+      {/* ✅ BILLING SUMMARY */}
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-[#0961A1] mb-4 flex items-center gap-2">
           <FaFileInvoice /> Billing Summary
         </h3>
+
         <div className="flex flex-col sm:flex-row justify-between text-sm text-gray-700">
           <div className="space-y-1">
             <p>Subtotal: ₹{visit.subtotal || visit.finalAmount}</p>
             <p>Discount: {visit.discount ? `${visit.discount}%` : "0%"}</p>
             <p>Tax: ₹{visit.tax || 0}</p>
           </div>
-          <div className="mt-3 sm:mt-0 text-right">
-            <p className="font-semibold text-[#0961A1] text-base">
-              Total: ₹{visit.finalAmount}
-            </p>
-          </div>
+
+          <p className="font-semibold text-[#0961A1] text-xl mt-4 sm:mt-0">
+            Total: ₹{visit.finalAmount}
+          </p>
         </div>
       </div>
 
-      {/* Update Status Modal */}
+      {/* ✅ Update Status Modal */}
       <UpdateStatusModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -208,5 +163,47 @@ const PathologistPatientDetails = () => {
     </div>
   );
 };
+
+/* ✅ SMALL REUSABLE COMPONENTS */
+const InfoItem = ({ label, value }) => (
+  <div>
+    <p className="text-xs text-gray-500">{label}</p>
+    <p className="font-semibold mt-1">{value}</p>
+  </div>
+);
+
+const CardBox = ({ title, icon, children }) => (
+  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+    <h3 className="text-lg font-semibold text-[#0961A1] mb-4 flex items-center gap-2">
+      {icon} {title}
+    </h3>
+    {children}
+  </div>
+);
+
+const StyledTable = ({ headers, rows }) => (
+  <table className="w-full text-sm text-gray-700 rounded-lg overflow-hidden">
+    <thead className="bg-gray-100 text-gray-600">
+      <tr>
+        {headers.map((h, i) => (
+          <th key={i} className="p-2 text-left">{h}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((r, i) => (
+        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+          {r.map((v, idx) => (
+            <td key={idx} className="p-2">{v}</td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+
+const NoData = ({ text }) => (
+  <div className="text-gray-500 text-sm italic">{text}</div>
+);
 
 export default PathologistPatientDetails;

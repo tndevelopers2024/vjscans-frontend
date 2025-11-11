@@ -18,7 +18,7 @@ export default function PatientReports() {
   const loadReports = async () => {
     try {
       const res = await PatientDashboardAPI.getReports(patientId);
-      setReports(res.data.data);
+      setReports(res.data.data || []);
     } catch (err) {
       console.log(err);
     }
@@ -34,84 +34,98 @@ export default function PatientReports() {
 
   return (
     <PatientLayout>
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-0 pb-16">
 
-        {/* ✅ Gradient Header */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white rounded-2xl p-8 text-center shadow-xl mb-8">
-          <h1 className="text-3xl text-white font-bold" style={{color:'#fff'}}>My Reports</h1>
-          <p className="text-sm text-white  opacity-90 mt-2"  style={{color:'#fff'}} >
-            Access & download your test reports
+        {/* ✅ PAGE HEADER (clean white like screenshot) */}
+        <div className="rounded-2xl border border-gray-200 bg-white px-6 py-7 shadow-sm">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
+            My Reports
+          </h1>
+          <p className="text-sm text-slate-600 mt-1">
+            Access & download your medical reports.
           </p>
         </div>
 
-        {/* ✅ Glass Section */}
-        <div className="bg-white/80 backdrop-blur-xl border border-white/40 shadow-lg p-6 rounded-2xl">
+        {/* ✅ REPORTS CARD */}
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="px-6 py-5 border-b border-gray-200">
+            <h2 className="text-base sm:text-lg font-semibold text-slate-900">
+              Available Reports
+            </h2>
+          </div>
 
-          <h3 className="text-xl font-semibold mb-5">Available Reports</h3>
-
-          {/* ✅ MOBILE LIST */}
-          <div className="space-y-4 md:hidden">
+          {/* ✅ MOBILE LIST (cards) */}
+          <div className="md:hidden p-4 space-y-4">
             {reports.map((r) => (
               <div
                 key={r._id}
                 onClick={() => navigate(`/patient/report/${r._id}`)}
-                className="flex items-center gap-4 p-4 bg-white rounded-xl shadow hover:shadow-md transition cursor-pointer"
+                className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm active:bg-slate-50 cursor-pointer"
               >
-                <div className="p-3 bg-blue-100 rounded-xl text-blue-600">
-                  <FileText size={26} />
-                </div>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 rounded-xl text-blue-600">
+                    <FileText size={26} />
+                  </div>
 
-                <div className="flex-1">
-                  <p className="text-lg font-semibold">
-                    {new Date(r.reportDate).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-500">Visit ID: {r.visitId}</p>
-                </div>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-slate-900">
+                      {new Date(r.reportDate).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      Visit ID: #{r.visitId}
+                    </p>
+                  </div>
 
-                <ChevronRight className="text-gray-400" size={22} />
+                  <ChevronRight className="text-slate-400" size={22} />
+                </div>
               </div>
             ))}
           </div>
 
-          {/* ✅ DESKTOP TABLE */}
-          <div className="hidden md:block mt-4">
-            <table className="w-full border-collapse text-left text-gray-700">
-              <thead>
-                <tr className="bg-gray-100 text-gray-800">
-                  <th className="p-3 font-semibold rounded-l-lg">Report Date</th>
-                  <th className="p-3 font-semibold">Visit ID</th>
-                  <th className="p-3 font-semibold rounded-r-lg text-center">
-                    Download
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {reports.map((r) => (
-                  <tr
-                    key={r._id}
-                    className="border-b hover:bg-gray-50 transition"
-                  >
-                    <td className="p-3">
-                      {new Date(r.reportDate).toLocaleDateString()}
-                    </td>
-
-                    <td className="p-3 font-medium">#{r.visitId}</td>
-
-                    <td className="p-3 text-center">
-                      <button
-                        onClick={() => navigate(`/patient/report/${r._id}`)}
-                        className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-                      >
-                        View Report
-                      </button>
-                    </td>
+          {/* ✅ DESKTOP TABLE (matches screenshot EXACTLY) */}
+          <div className="hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm text-slate-700">
+                <thead className="bg-slate-50 text-slate-700">
+                  <tr>
+                    <th className="py-3 px-4 text-left font-medium rounded-tl-2xl">
+                      Report Date
+                    </th>
+                    <th className="py-3 px-4 text-left font-medium">
+                      Visit ID
+                    </th>
+                    <th className="py-3 px-4 text-right font-medium rounded-tr-2xl">
+                      Action
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
 
+                <tbody className="divide-y divide-gray-200">
+                  {reports.map((r) => (
+                    <tr key={r._id} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4">
+                        {new Date(r.reportDate).toLocaleDateString()}
+                      </td>
+
+                      <td className="py-4 px-4 font-medium text-slate-900">
+                        #{r.visitId}
+                      </td>
+
+                      <td className="py-4 px-4 text-right">
+                        <button
+                          onClick={() => navigate(`/patient/report/${r._id}`)}
+                          className="inline-flex items-center gap-2 border border-gray-300 rounded-full px-4 py-1.5 text-xs font-medium text-slate-800 hover:bg-slate-50"
+                        >
+                          View <ChevronRight size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+            </div>
+          </div>
         </div>
       </div>
     </PatientLayout>

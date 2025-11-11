@@ -58,6 +58,7 @@ const UpdateStatusModal = ({
               onChange={(e) => setStatus(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:ring-2 focus:ring-[#0961A1] outline-none"
             >
+              <option value="Pending">Select Status</option>
               <option value="Collected">Collected</option>
               <option value="Processing">Processing</option>
               <option value="Cancelled">Cancelled</option>

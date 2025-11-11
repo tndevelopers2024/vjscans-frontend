@@ -2,294 +2,364 @@ import { useState, useEffect } from "react";
 import { PatientAPI, TestAPI, PackageAPI } from "../../utils/api";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
+import {
+  Form,
+  Input,
+  Select,
+  Button,
+  Radio,
+  Card,
+  message,
+  Skeleton,
+  Checkbox,
+} from "antd";
+
+import {
+  UserOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  HomeOutlined,
+  SearchOutlined,
+  AppstoreOutlined,
+  DatabaseOutlined,
+} from "@ant-design/icons";
+
+const { Option } = Select;
+const { TextArea } = Input;
+
 const PatientForm = () => {
   const navigate = useNavigate();
   const { setPageTitle } = useOutletContext();
 
-  const [form, setForm] = useState({
-    fullName: "",
-    gender: "",
-    age: "",
-    mobile: "",
-    email: "",
-    city: "",
-    address: "",
-    bookingType: "Offline",
-    tests: [],
-    packages: [],
-    discount: 0,
-  });
   const [loading, setLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(true);
+
+  const [patientType, setPatientType] = useState("new");
+  const [searchInput, setSearchInput] = useState("");
+  const [patientId, setPatientId] = useState("");
+
   const [tests, setTests] = useState([]);
   const [packages, setPackages] = useState([]);
 
+  // ✅ Search filters for tests & packages
+  const [testSearch, setTestSearch] = useState("");
+  const [packageSearch, setPackageSearch] = useState("");
+
+  const [form] = Form.useForm();
+
   useEffect(() => {
-    setPageTitle("Add Patient");
+    setPageTitle("Add Patient & Book Visit");
   }, []);
 
-  // Fetch available tests & packages
+  /** ✅ Fetch Tests + Packages */
   useEffect(() => {
-    const fetchData = async () => {
-      const [tRes, pRes] = await Promise.all([
-        TestAPI.getAll(),
-        PackageAPI.getAll(),
-      ]);
-      setTests(tRes.data.data);
-      setPackages(pRes.data.data);
+    const load = async () => {
+      try {
+        const [tRes, pRes] = await Promise.all([
+          TestAPI.getAll(),
+          PackageAPI.getAll(),
+        ]);
+        setTests(tRes.data.data);
+        setPackages(pRes.data.data);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setTestLoading(false);
+      }
     };
-    fetchData();
+    load();
   }, []);
 
-  // Handle input change
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  /** ✅ Filtered lists */
+  const filteredTests = tests.filter((t) =>
+    t.name.toLowerCase().includes(testSearch.toLowerCase())
+  );
 
-  const toggleSelection = (list, id) => {
-    setForm((prev) => ({
-      ...prev,
-      [list]: prev[list].includes(id)
-        ? prev[list].filter((x) => x !== id)
-        : [...prev[list], id],
-    }));
+  const filteredPackages = packages.filter((p) =>
+    p.name.toLowerCase().includes(packageSearch.toLowerCase())
+  );
+
+  /** ✅ Search existing patient */
+  const handleSearch = async () => {
+    if (!searchInput.trim()) return message.error("Enter Mobile or Email");
+
+    try {
+      const all = await PatientAPI.getAll();
+      const found = all.data.data.find(
+        (p) =>
+          p.mobile === searchInput.trim() ||
+          p.email?.toLowerCase() === searchInput.trim().toLowerCase()
+      );
+
+      if (!found) return message.warning("No patient found");
+
+      setPatientId(found._id);
+
+      form.setFieldsValue(found);
+
+      message.success("Auto-filled patient details ✅");
+    } catch (err) {
+      message.error("Error searching patient");
+    }
   };
 
-  // Submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /** ✅ Submit */
+  const onFinish = async (values) => {
     setLoading(true);
+
+    const payload = {
+      ...values,
+      patientId: patientType === "existing" ? patientId : "",
+    };
+
     try {
-      const payload = {
-        ...form,
-        bookingType: form.bookingType || "Offline",
-      };
       await PatientAPI.bookVisit(payload);
-      navigate("/admin/patients");
+      message.success("Saved Successfully ✅");
+navigate(`/admin/patients/${patientId || ""}`);
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to save patient");
+      message.error(err.response?.data?.message || "Failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="py-6 bg-gray-50">
-      {/* Header */}
-      <h2 className="text-xl font-semibold text-[#0961A1] mb-6 flex items-center gap-2">
-         Add New Patient & First Visit
-      </h2>
+    <div>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        className="space-y-8 grid gap-6"
+      >
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Patient Info Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="fullName"
-              value={form.fullName}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
+        {/* ✅ Patient Type */}
+        <GlassCard>
+          <Radio.Group
+            value={patientType}
+            onChange={(e) => {
+              setPatientType(e.target.value);
+              if (e.target.value === "new") {
+                form.resetFields();
+                setPatientId("");
+              }
+            }}
+            className="flex gap-6 text-base"
+          >
+            <Radio value="new">New Patient</Radio>
+            <Radio value="existing">Existing Patient</Radio>
+          </Radio.Group>
+        </GlassCard>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Gender
-            </label>
-            <select
-              name="gender"
-              value={form.gender}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Age
-            </label>
-            <input
-              type="number"
-              name="age"
-              value={form.age}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mobile
-            </label>
-            <input
-              type="text"
-              name="mobile"
-              value={form.mobile}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              City
-            </label>
-            <input
-              type="text"
-              name="city"
-              value={form.city}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address
-            </label>
-            <textarea
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              rows="2"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            ></textarea>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Booking Type
-            </label>
-            <select
-              name="bookingType"
-              value={form.bookingType}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="Offline">Offline (Reception)</option>
-              <option value="Online">Online (Website)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Tests Section */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-[#0961A1] mb-3">
-            Select Individual Tests
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {tests.map((t) => (
-              <label
-                key={t._id}
-                className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer text-sm ${
-                  form.tests.includes(t._id)
-                    ? "border-[#0961A1] bg-blue-50"
-                    : "border-gray-200"
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.tests.includes(t._id)}
-                  onChange={() => toggleSelection("tests", t._id)}
+        {/* ✅ Search Existing */}
+        {patientType === "existing" && (
+          <GlassCard>
+            <div className="flex gap-4 items-end">
+              <Form.Item className="flex-1 !mb-0">
+                <label className="font-medium text-gray-700 mb-1 block">
+                  Mobile / Email
+                </label>
+                <Input
+                  size="large"
+                  prefix={<SearchOutlined />}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Enter mobile or email"
                 />
-                <span>
-                  {t.name}{" "}
-                  <span className="text-xs text-gray-500">₹{t.price}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+              </Form.Item>
 
-        {/* Packages Section */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-[#F98D1B] mb-3">
-            Select Test Packages
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {packages.map((p) => (
-              <label
-                key={p._id}
-                className={`flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer text-sm ${
-                  form.packages.includes(p._id)
-                    ? "border-[#F98D1B] bg-orange-50"
-                    : "border-gray-200"
-                }`}
+              <Button
+                size="large"
+                type="primary"
+                icon={<SearchOutlined />}
+                className="bg-[#1E5FAF]"
+                onClick={handleSearch}
               >
-                <input
-                  type="checkbox"
-                  checked={form.packages.includes(p._id)}
-                  onChange={() => toggleSelection("packages", p._id)}
-                />
-                <span>
-                  {p.name}{" "}
-                  <span className="text-xs text-gray-500">₹{p.finalPrice}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+                Search
+              </Button>
+            </div>
+          </GlassCard>
+        )}
 
-        {/* Discount & Submit */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="w-full md:w-1/3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Discount (%)
-            </label>
-            <input
-              type="number"
-              name="discount"
-              value={form.discount}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
+        {/* ✅ Patient Details */}
+        <GlassCard title="Patient Details">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          <div className="flex gap-3 justify-end w-full md:w-auto mt-4 md:mt-0">
-            <button
-              type="button"
-              onClick={() => navigate("/receptionist/patients")}
-              className="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2 bg-[#0961A1] text-white rounded-lg hover:bg-[#0a4f7a] transition"
-            >
-              {loading ? "Saving..." : "Save Patient"}
-            </button>
+            <InputField name="fullName" label="Full Name" icon={<UserOutlined />} disabled={patientType === "existing"} />
+            <SelectField name="gender" label="Gender" disabled={patientType === "existing"} />
+
+            <InputField name="age" label="Age" type="number" />
+            <InputField name="mobile" label="Mobile" icon={<PhoneOutlined />} disabled={patientType === "existing"} />
+
+            <InputField name="email" label="Email" icon={<MailOutlined />} />
+            <InputField name="city" label="City" />
+
+            <InputField name="state" label="State" />
+            <InputField name="pincode" label="Pincode" />
+
+            <Form.Item name="address" label="Address" className="md:col-span-2">
+              <TextArea rows={2} size="large" prefix={<HomeOutlined />} />
+            </Form.Item>
+
+            <Form.Item name="bookingType" label="Booking Type" initialValue="Offline">
+              <Select size="large">
+                <Option value="Offline">Offline</Option>
+                <Option value="Online">Online</Option>
+              </Select>
+            </Form.Item>
+
           </div>
-        </div>
-      </form>
+        </GlassCard>
+
+        {/* ✅ TESTS WITH SEARCH */}
+        <GlassCard title="Select Tests" icon={<DatabaseOutlined />}>
+          {testLoading ? (
+            <Skeleton active />
+          ) : (
+            <>
+              <Input
+                placeholder="Search tests..."
+                prefix={<SearchOutlined />}
+                size="large"
+                className="mb-4"
+                value={testSearch}
+                onChange={(e) => setTestSearch(e.target.value)}
+              />
+
+              <Form.Item name="tests" label="Choose Tests">
+                <Checkbox.Group style={{ width: "100%" }}>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+
+                    {filteredTests.length === 0 && (
+                      <div className="text-gray-400 col-span-full">No tests found</div>
+                    )}
+
+                    {filteredTests.map((test) => (
+                      <Checkbox
+                        key={test._id}
+                        value={test._id}
+                        className="border! border-[#ccc]! p-3! rounded-md! hover:shadow-md transition"
+                      >
+                        <div className="font-medium text-gray-700">{test.name}</div>
+                        <div className="text-xs text-gray-500">₹{test.price}</div>
+                      </Checkbox>
+                    ))}
+                  </div>
+                </Checkbox.Group>
+              </Form.Item>
+            </>
+          )}
+        </GlassCard>
+
+        {/* ✅ PACKAGES WITH SEARCH */}
+        <GlassCard title="Select Packages" icon={<AppstoreOutlined />}>
+          {testLoading ? (
+            <Skeleton active />
+          ) : (
+            <>
+              <Input
+                placeholder="Search packages..."
+                prefix={<SearchOutlined />}
+                size="large"
+                className="mb-4"
+                value={packageSearch}
+                onChange={(e) => setPackageSearch(e.target.value)}
+              />
+
+              <Form.Item name="packages" label="Choose Packages">
+                <Checkbox.Group style={{ width: "100%" }}>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+
+                    {filteredPackages.length === 0 && (
+                      <div className="text-gray-400 col-span-full">No packages found</div>
+                    )}
+
+                    {filteredPackages.map((pkg) => (
+                      <Checkbox
+                        key={pkg._id}
+                        value={pkg._id}
+                        className="border! border-[#ccc]! p-3! rounded-md!  hover:shadow-md transition"
+                      >
+                        <div className="font-medium text-gray-700">{pkg.name}</div>
+                        <div className="text-xs text-gray-500">₹{pkg.finalPrice}</div>
+                      </Checkbox>
+                    ))}
+                  </div>
+                </Checkbox.Group>
+              </Form.Item>
+            </>
+          )}
+        </GlassCard>
+
+        {/* ✅ Submit */}
+        <GlassCard>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+
+            <Form.Item name="discount" label="Discount (%)">
+              <Input size="large" type="number" />
+            </Form.Item>
+
+            <div className="flex gap-4">
+              <Button size="large" onClick={() => navigate(-1)}>
+                Cancel
+              </Button>
+
+              <Button
+                type="primary"
+                htmlType="submit"
+                size="large"
+                loading={loading}
+                className="bg-[#1E5FAF]"
+              >
+                Save Patient
+              </Button>
+            </div>
+
+          </div>
+        </GlassCard>
+
+      </Form>
     </div>
   );
 };
 
 export default PatientForm;
+
+/* ✅ GLASS CARD */
+const GlassCard = ({ title, icon, children }) => (
+  <Card
+    title={
+      title ? (
+        <div className="flex items-center gap-2 text-lg font-semibold text-[#1E5FAF]">
+          {icon} {title}
+        </div>
+      ) : null
+    }
+    className="rounded-2xl shadow-md bg-white/80 border border-white/60 backdrop-blur-xl"
+  >
+    {children}
+  </Card>
+);
+
+/* ✅ INPUT Component */
+const InputField = ({ name, label, icon, type, disabled }) => (
+  <Form.Item name={name} label={label} rules={[{ required: true }]}>
+    <Input
+      size="large"
+      prefix={icon}
+      type={type}
+      disabled={disabled}
+      className="rounded-xl"
+    />
+  </Form.Item>
+);
+
+/* ✅ SELECT Component */
+const SelectField = ({ name, label, disabled }) => (
+  <Form.Item name={name} label={label} rules={[{ required: true }]}>
+    <Select size="large" disabled={disabled}>
+      <Option value="Male">Male</Option>
+      <Option value="Female">Female</Option>
+      <Option value="Other">Other</Option>
+    </Select>
+  </Form.Item>
+);

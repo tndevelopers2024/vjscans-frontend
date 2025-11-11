@@ -4,7 +4,6 @@ const BASE_URL =  "https://vj-scans.shop/api";
 
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -67,6 +66,7 @@ export const PackageAPI = {
 export const PatientAPI = {
   getAll: () => api.get("/patients"),
   getById: (id) => api.get(`/patients/${id}`),
+  create: (data) => api.post("/patients", data),
   delete: (id) => api.delete(`/patients/${id}`),
   bookVisit: (data) => api.post("/patients/book", data),
   getVisits: (patientId) => api.get(`/patients/${patientId}/visits`),

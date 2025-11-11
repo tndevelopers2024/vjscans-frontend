@@ -95,26 +95,6 @@ body,
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* ===========================================
-   🌊 Scrollbar Styling
-=========================================== */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--primary-color);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--primary-hover);
-}
-
-::-webkit-scrollbar-track {
-  background-color: #f1f5f9;
-}
 
 /* ===========================================
    ✨ Components & Effects
@@ -252,4 +232,9 @@ p {
 
 .animate-fadeSlideSlow {
   animation: fadeSlide 0.6s ease-out;
+}
+.ant-card-bordered,.ant-card-body{
+  box-shadow: none !important;
+      border-radius: 15px !important;
+    border: none !important;
 }

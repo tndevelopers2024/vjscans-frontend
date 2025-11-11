@@ -11,8 +11,8 @@ import Footer from "./layouts/Footer";
 
 // Dashboards
 import AdminDashboard from "./pages/Dashboard/AdminDashboard";
-import TechnicianDashboard from "./pages/Technician/TechnicianDashboard";
-import PathologistDashboard from "./pages/Pathologist/PathologistDashboard";
+import TechnicianDashboard from "./pages/Dashboard/TechnicianDashboard";
+import PathologistDashboard from "./pages/Dashboard/PathologistDashboard";
 
 // Patients
 import PatientList from "./pages/Patients/PatientList";
@@ -27,8 +27,7 @@ import UpdateStatusModal from "./pages/Pathologist/UpdateStatusModal";
 import TechnicianSampleDetails from "./pages/Technician/TechnicianSampleDetails";
 
 // Admin
-import UserList from "./pages/Admin/UserList";
-import UserForm from "./pages/Admin/UserForm";
+import UserManager from "./pages/Admin/UserManager";
 import TestList from "./pages/TestList";
 import PackageList from "./pages/PackageList";
 
@@ -77,14 +76,14 @@ const App = () => {
     const [pageTitle, setPageTitle] = useState("Dashboard");
 
     return (
-      <div className="flex h-screen gap-6 bg-gray-50 p-6">
+      <div className="flex h-screen gap-3 bg-gradient-to-b from-[#F6F9FF] to-[#E8F1FF] ">
         <Sidebar />
         <div className="flex flex-col flex-1">
           <Navbar user={user} title={pageTitle} />
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex-1 overflow-y-auto py-6 pr-6">
             <Outlet context={{ setPageTitle }} />
           </main>
-          <Footer />
+         
         </div>
       </div>
     );
@@ -114,7 +113,7 @@ const App = () => {
         <Route path="/patient/dashboard" element={<PatientDashboard />} />
         <Route path="/patient/dashboard" element={<PatientDashboard />} />
 <Route path="/patient/visits" element={<PatientVisits />} />
-<Route path="/patient/visit/:visitId" element={<PatientVisitDetails />} />
+<Route path="/patient/visit/:patientId/:visitId" element={<PatientVisitDetails />} />
 <Route path="/patient/reports" element={<PatientReports />} />
 <Route path="/patient/report/:reportId" element={<PatientReportViewer />} />
 <Route path="/patient/profile" element={<PatientProfile />} />
@@ -132,9 +131,7 @@ const App = () => {
           <Route path="patients" element={<PatientList />} />
           <Route path="patients/add" element={<PatientForm />} />
           <Route path="patients/:id" element={<PatientDetails />} />
-          <Route path="users" element={<UserList />} />
-          <Route path="users/new" element={<UserForm />} />
-          <Route path="users/:id/edit" element={<UserForm />} />
+          <Route path="users" element={<UserManager />} />
           <Route path="tests" element={<TestList />} />
           <Route path="packages" element={<PackageList />} />
           <Route path="scanner" element={<BarcodeScanner role="Admin" />} />

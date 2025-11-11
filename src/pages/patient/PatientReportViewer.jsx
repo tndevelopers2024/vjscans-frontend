@@ -24,74 +24,81 @@ export default function PatientReportViewer() {
   if (!report)
     return (
       <PatientLayout>
-        <div className="p-6 text-center">Loading report...</div>
+        <div className="p-6 text-center text-gray-500">Loading report...</div>
       </PatientLayout>
     );
 
   return (
     <PatientLayout>
-      <div className="max-w-3xl mx-auto pb-10">
+      <div className="max-w-4xl mx-auto px-4 pb-20">
 
-        {/* ✅ Gradient Hero Header */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white text-center py-14 rounded-b-3xl shadow-xl">
-          <div className="flex flex-col items-center gap-3">
-            <FileText size={48} className="text-white" />
-            <h1 className="text-3xl font-bold"  style={{color:'#fff'}}>Report Details</h1>
-            <p className="text-sm opacity-90"  style={{color:'#fff'}}>
-              Download & view your lab report
-            </p>
-          </div>
+        {/* ✅ Page Header (same style as Visit & Report pages) */}
+        <div className="rounded-2xl border border-gray-200 bg-white px-6 py-7 shadow-sm mb-6">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
+            Report Details
+          </h1>
+          <p className="text-sm text-slate-600 mt-1">
+            Download & view your medical report.
+          </p>
         </div>
 
-        {/* ✅ Floating Main Report Card */}
-        <div className="relative -mt-8 mx-4 bg-white rounded-2xl p-6 shadow-xl animate-fadeSlide">
+        {/* ✅ Main Report Info Card */}
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="p-4 rounded-xl bg-blue-100 text-blue-700">
+            <div className="p-4 rounded-xl bg-blue-100 text-blue-600">
               <FileText size={30} />
             </div>
 
             <div>
-              <p className="text-xl font-semibold">
+              <p className="text-xl font-semibold text-slate-900">
                 {new Date(report.reportDate).toLocaleDateString()}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Visit ID: {report.visitId}
+              <p className="text-sm text-slate-500 mt-1">
+                Visit ID: #{report.visitId}
               </p>
             </div>
           </div>
 
+          {/* ✅ Download Button */}
           <a
-            href={report.reportFileUrl}
+            href={`https://vj-scans.shop${report.reportFileUrl}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-5 rounded-xl mt-4 text-lg shadow hover:bg-blue-700 transition"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-5 rounded-xl text-base font-medium transition"
           >
             <Download size={20} />
             Download Report
           </a>
         </div>
 
-        {/* ✅ Glass Info Section */}
-        <div className="mx-4 mt-6 bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl p-6 shadow-lg animate-fadeSlideSlow">
-          <h3 className="text-xl font-semibold mb-4">Report Information</h3>
+        {/* ✅ Report Info Details */}
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-6 mt-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">
+            Report Information
+          </h3>
 
           <div className="flex justify-between py-3 border-b border-gray-200">
-            <span className="text-gray-500 text-sm">Uploaded By</span>
-            <span className="font-semibold">{report.uploadedBy || "Technician"}</span>
+            <span className="text-sm text-slate-500">Uploaded By</span>
+            <span className="font-medium text-slate-900">
+              {report.uploadedBy || "Technician"}
+            </span>
           </div>
 
           <div className="flex justify-between py-3 border-b border-gray-200">
-            <span className="text-gray-500 text-sm">Uploaded On</span>
-            <span className="font-semibold">
+            <span className="text-sm text-slate-500">Uploaded On</span>
+            <span className="font-medium text-slate-900">
               {new Date(report.reportDate).toLocaleString()}
             </span>
           </div>
 
           <div className="flex justify-between py-3">
-            <span className="text-gray-500 text-sm">Delivery Method</span>
-            <span className="font-semibold">{report.deliveredVia || "Online"}</span>
+            <span className="text-sm text-slate-500">Delivery Method</span>
+            <span className="font-medium text-slate-900">
+              {report.deliveredVia || "Online"}
+            </span>
           </div>
         </div>
+
       </div>
     </PatientLayout>
   );

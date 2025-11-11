@@ -13,9 +13,9 @@ const Navbar = ({ title }) => {
   }, []);
 
   return (
-    <header className="flex justify-between items-center bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-3 mt-2 mx-4">
+    <header className="flex justify-between items-center bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-3 mt-6 mr-6">
       {/* Dynamic Page Title */}
-      <h1 className="text-lg font-semibold text-gray-900 capitalize">
+      <h1 className="text-xl font-semibold text-gray-900 capitalize">
         {title || "Dashboard"}
       </h1>
 

@@ -17,13 +17,34 @@ const UpdateSampleStatusModal = ({
 
   const handleSave = async () => {
     setLoading(true);
+
     try {
-      if (status === "Completed" && file) {
+      let finalStatus = status;
+
+      // ✅ If user selects "Report Ready" → upload file → status must become "Completed"
+      if (status === "Report Ready") {
+        if (!file) {
+          alert("Please upload the PDF report before saving.");
+          setLoading(false);
+          return;
+        }
+
+        // ✅ Upload report file
         const formData = new FormData();
         formData.append("reportFile", file);
+
         await ReportAPI.upload(patientId, visitId, formData);
+
+        // ✅ After successful upload → Status becomes Completed
+        finalStatus = "Completed";
       }
-      await PatientAPI.updateVisitStatus(patientId, visitId, { status, remarks });
+
+      // ✅ Update visit status
+      await PatientAPI.updateVisitStatus(patientId, visitId, {
+        status: finalStatus,
+        remarks,
+      });
+
       onUpdated();
       onClose();
     } catch (err) {
@@ -39,7 +60,8 @@ const UpdateSampleStatusModal = ({
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50 transition">
       <div className="bg-white rounded-2xl shadow-xl w-[95%] sm:w-[450px] p-6 animate-fadeIn">
-        {/* Header */}
+        
+        {/* ✅ Header */}
         <div className="flex justify-between items-center border-b pb-3">
           <h2 className="text-lg font-semibold text-[#0961A1]">
             Update Sample Status
@@ -52,9 +74,10 @@ const UpdateSampleStatusModal = ({
           </button>
         </div>
 
-        {/* Content */}
+        {/* ✅ Content */}
         <div className="space-y-4 mt-5">
-          {/* Status Select */}
+
+          {/* ✅ Status Select (Completed removed) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Status
@@ -66,14 +89,17 @@ const UpdateSampleStatusModal = ({
             >
               <option value="Collected">Collected</option>
               <option value="Processing">Processing</option>
+
+              {/* ✅ Choosing this shows upload box */}
               <option value="Report Ready">Report Ready</option>
-              <option value="Completed">Completed</option>
+
+              {/* ❌ Removed "Completed" */}
               <option value="Cancelled">Cancelled</option>
             </select>
           </div>
 
-          {/* File Upload (only if Completed) */}
-          {status === "Completed" && (
+          {/* ✅ Show Upload only when "Report Ready" */}
+          {status === "Report Ready" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Upload Report (PDF)
@@ -97,7 +123,7 @@ const UpdateSampleStatusModal = ({
             </div>
           )}
 
-          {/* Remarks */}
+          {/* ✅ Remarks */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Remarks
@@ -110,9 +136,10 @@ const UpdateSampleStatusModal = ({
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:ring-2 focus:ring-[#0961A1] outline-none resize-none"
             ></textarea>
           </div>
+
         </div>
 
-        {/* Footer */}
+        {/* ✅ Footer */}
         <div className="flex justify-end gap-3 mt-6 border-t pt-4">
           <button
             onClick={onClose}
@@ -120,6 +147,7 @@ const UpdateSampleStatusModal = ({
           >
             Cancel
           </button>
+
           <button
             onClick={handleSave}
             disabled={loading}
@@ -133,6 +161,7 @@ const UpdateSampleStatusModal = ({
             {loading ? "Saving..." : "Save"}
           </button>
         </div>
+
       </div>
     </div>
   );
