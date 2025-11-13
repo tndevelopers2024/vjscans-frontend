@@ -209,6 +209,7 @@ const PackageList = () => {
           />
 
           {/* Tests Count */}
+           <div className="custom-select">
           <select
             value={testCountFilter}
             onChange={(e) => setTestCountFilter(e.target.value)}
@@ -221,8 +222,10 @@ const PackageList = () => {
             <option value="4">4 Tests</option>
             <option value="5">5 Tests</option>
           </select>
+</div>
 
           {/* Discount Filter */}
+           <div className="custom-select">
           <select
             value={discountFilter}
             onChange={(e) => setDiscountFilter(e.target.value)}
@@ -234,8 +237,9 @@ const PackageList = () => {
             <option value="10">10% Discount</option>
             <option value="20">20% Discount</option>
           </select>
-
+</div>
           {/* Date Filters */}
+           <div className="custom-select">
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
@@ -247,7 +251,7 @@ const PackageList = () => {
             <option value="month">This Month</option>
             <option value="custom">Custom Range</option>
           </select>
-
+</div>
           {/* Custom Date */}
           {dateFilter === "custom" && (
             <div className="flex gap-3">

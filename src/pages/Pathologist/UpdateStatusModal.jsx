@@ -53,6 +53,7 @@ const UpdateStatusModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Status
             </label>
+             <div className="custom-select">
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
@@ -63,6 +64,7 @@ const UpdateStatusModal = ({
               <option value="Processing">Processing</option>
               <option value="Cancelled">Cancelled</option>
             </select>
+            </div>
           </div>
 
           {/* Remarks Field */}

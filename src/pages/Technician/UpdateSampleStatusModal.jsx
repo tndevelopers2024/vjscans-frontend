@@ -82,6 +82,7 @@ const UpdateSampleStatusModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Status
             </label>
+             <div className="custom-select">
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
@@ -96,6 +97,8 @@ const UpdateSampleStatusModal = ({
               {/* ❌ Removed "Completed" */}
               <option value="Cancelled">Cancelled</option>
             </select>
+
+            </div>
           </div>
 
           {/* ✅ Show Upload only when "Report Ready" */}

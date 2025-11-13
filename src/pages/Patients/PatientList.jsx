@@ -129,6 +129,7 @@ const PatientList = () => {
           <div className="flex items-center gap-3 flex-wrap">
 
             {/* Preset Filter */}
+              <div className="custom-select">
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
@@ -140,7 +141,7 @@ const PatientList = () => {
               <option value="month">This Month</option>
               <option value="custom">Custom Range</option>
             </select>
-
+</div>
             {/* Custom Date Inputs */}
             {dateFilter === "custom" && (
               <div className="flex items-center gap-3">

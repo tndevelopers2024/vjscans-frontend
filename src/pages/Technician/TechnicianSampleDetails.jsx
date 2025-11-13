@@ -127,35 +127,54 @@ const TechnicianSampleDetails = () => {
           )}
         </div>
 
-        {/* ✅ Packages */}
-        {visit.packages?.length > 0 && (
-          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-[#1E5FAF] mb-4 flex items-center gap-2">
-              <FaBox /> Packages Included
-            </h3>
-            <table className="w-full text-sm text-gray-700">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-2 text-left font-medium">Package Name</th>
-                  <th className="p-2 text-left font-medium">Tests</th>
-                  <th className="p-2 text-left font-medium">Final Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visit.packages.map((pkg, i) => (
-                  <tr
-                    key={pkg._id}
-                    className={`border-t ${i % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
-                  >
-                    <td className="p-2 font-medium">{pkg.name}</td>
-                    <td className="p-2">{pkg.tests?.length || 0}</td>
-                    <td className="p-2 text-[#1E5FAF] font-semibold">₹{pkg.finalPrice}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      {/* ✅ Packages */}
+{visit.packages?.length > 0 && (
+  <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+    <h3 className="text-lg font-semibold text-[#1E5FAF] mb-4 flex items-center gap-2">
+      <FaBox /> Packages Included
+    </h3>
+
+    <table className="w-full text-sm text-gray-700 rounded-xl overflow-hidden">
+      <thead className="bg-gray-100 text-gray-600">
+        <tr>
+          <th className="p-2 text-left font-medium">Package Name</th>
+          <th className="p-2 text-left font-medium">Tests Included</th>
+          <th className="p-2 text-left font-medium">Final Price</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {visit.packages.map((pkg, i) => (
+          <>
+            {/* MAIN ROW */}
+            <tr
+              key={pkg._id}
+             
+            >
+              <td className="p-3 font-medium">{pkg.name}</td>
+              <td className="p-3">{pkg.tests?.length || 0}</td>
+              <td className="p-3 text-[#1E5FAF] font-semibold">₹{pkg.finalPrice}</td>
+            </tr>
+
+            {/* SUB-ROW WITH TEST NAMES */}
+            {pkg.tests?.length > 0 && (
+              <tr className="bg-[#F8FAFF]">
+                <td colSpan={3} className="p-3 pl-6">
+                  <span className="font-semibold mr-2">Tests:</span>
+                  {pkg.tests.map((t, index) => (
+                    <span key={index} className="mr-3 inline-block text-gray-700">
+                      • {t.name}
+                    </span>
+                  ))}
+                </td>
+              </tr>
+            )}
+          </>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
 
       </div>
 

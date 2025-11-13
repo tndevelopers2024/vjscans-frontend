@@ -254,6 +254,7 @@ const [search, setSearch] = useState("");
                   <label className="text-sm text-gray-600 mb-1 block">
                     Role <span className="text-red-500">*</span>
                   </label>
+                   <div className="custom-select">
                   <select
                     name="role"
                     value={form.role}
@@ -266,6 +267,7 @@ const [search, setSearch] = useState("");
                     <option value="Technician">Technician</option>
                     <option value="Pathologist">Pathologist</option>
                   </select>
+                  </div>
                 </div>
 
                 {/* Password only for Create */}

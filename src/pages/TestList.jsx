@@ -164,17 +164,19 @@ const TestList = () => {
           </div>
 
           {/* ✅ Sample Type Filter */}
-          <select
-            value={sampleFilter}
-            onChange={(e) => setSampleFilter(e.target.value)}
-            className="px-4 py-3 rounded-xl border bg-white shadow text-gray-600"
-          >
-            <option value="all">All Samples</option>
-            <option value="Blood">Blood</option>
-            <option value="Urine">Urine</option>
-            <option value="Saliva">Saliva</option>
-            <option value="Stool">Stool</option>
-          </select>
+       <div className="custom-select">
+  <select
+    value={sampleFilter}
+    onChange={(e) => setSampleFilter(e.target.value)}
+    className="px-6 py-3 rounded-3xl border bg-white shadow text-gray-700 min-w-[180px]"
+  >
+    <option value="all">All Samples</option>
+    <option value="Blood">Blood</option>
+    <option value="Urine">Urine</option>
+    <option value="Saliva">Saliva</option>
+    <option value="Stool">Stool</option>
+  </select>
+</div>
 
           {/* ✅ Price Range */}
           <input
@@ -193,17 +195,19 @@ const TestList = () => {
           />
 
           {/* ✅ Date Filter */}
-          <select
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="px-4 py-3 rounded-xl border bg-white shadow text-gray-600"
-          >
-            <option value="all">All Dates</option>
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="custom">Custom Range</option>
-          </select>
+        <div className="custom-select">
+  <select
+    value={dateFilter}
+    onChange={(e) => setDateFilter(e.target.value)}
+    className="px-6 py-3 rounded-3xl border bg-white shadow text-gray-700 min-w-[170px]"
+  >
+    <option value="all">All Dates</option>
+    <option value="today">Today</option>
+    <option value="week">This Week</option>
+    <option value="month">This Month</option>
+    <option value="custom">Custom Range</option>
+  </select>
+</div>
 
           {/* ✅ Custom Date Range */}
           {dateFilter === "custom" && (
@@ -386,16 +390,20 @@ const TestList = () => {
                 </div>
 
                 {/* Sample Type */}
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">Sample Type</label>
-                  <input
-                    type="text"
-                    name="sampleType"
-                    value={form.sampleType}
-                    onChange={handleChange}
-                    className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#1E5FAF]"
-                  />
-                </div>
+               <div className="custom-select">
+  <select
+    value={sampleFilter}
+    onChange={(e) => setSampleFilter(e.target.value)}
+    className="px-6 py-3 rounded-3xl border bg-white shadow text-gray-700"
+  >
+    <option value="all">All Samples</option>
+    <option value="Blood">Blood</option>
+    <option value="Urine">Urine</option>
+    <option value="Saliva">Saliva</option>
+    <option value="Stool">Stool</option>
+  </select>
+</div>
+
 
                 {/* Price */}
                 <div>

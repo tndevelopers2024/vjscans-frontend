@@ -117,20 +117,21 @@ useEffect(() => {
         </CardBox>
 
         {/* ✅ Packages */}
-        <CardBox title="Packages" icon={<FaBox className="text-[#0961A1]" />}>
-          {visit.packages?.length ? (
-            <StyledTable
-              headers={["Package Name", "Tests Included", "Final Price"]}
-              rows={visit.packages.map((pkg) => [
-                pkg.name,
-                pkg.tests?.length || 0,
-                "₹" + pkg.finalPrice,
-              ])}
-            />
-          ) : (
-            <NoData text="No packages added." />
-          )}
-        </CardBox>
+       <CardBox title="Packages" icon={<FaBox className="text-[#0961A1]" />}>
+  {visit.packages?.length ? (
+    <StyledTable
+      headers={["Package Name", "Tests Included", "Final Price"]}
+      rows={visit.packages.map((pkg) => [
+        pkg.name,
+        pkg.tests.map((t) => t.name),   // 👈 test names array
+        "₹" + pkg.finalPrice,
+      ])}
+    />
+  ) : (
+    <NoData text="No packages added." />
+  )}
+</CardBox>
+
       </div>
 
       {/* ✅ BILLING SUMMARY */}
@@ -183,25 +184,56 @@ const CardBox = ({ title, icon, children }) => (
 );
 
 const StyledTable = ({ headers, rows }) => (
-  <table className="w-full text-sm text-gray-700 rounded-lg overflow-hidden">
-    <thead className="bg-gray-100 text-gray-600">
-      <tr>
+  <table className="w-full text-sm text-gray-700 rounded-xl overflow-hidden">
+    {/* HEADER */}
+    <thead>
+      <tr className="bg-[#F3F6FB] text-gray-600">
         {headers.map((h, i) => (
-          <th key={i} className="p-2 text-left">{h}</th>
+          <th key={i} className="p-3 font-semibold text-left">
+            {h}
+          </th>
         ))}
       </tr>
     </thead>
+
+    {/* BODY */}
     <tbody>
-      {rows.map((r, i) => (
-        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-          {r.map((v, idx) => (
-            <td key={idx} className="p-2">{v}</td>
-          ))}
-        </tr>
+      {rows.map((row, i) => (
+        <>
+          {/* MAIN ROW */}
+          <tr
+            key={i}
+          >
+            {row.map((cell, idx) => (
+              <td key={idx} className="p-3 align-top">
+                {Array.isArray(cell) ? cell.length : cell}
+              </td>
+            ))}
+          </tr>
+
+          {/* 🔽 SUB ROW — Tests List */}
+          {Array.isArray(row[1]) && (
+            <tr className="bg-[#F8FAFF]">
+              <td colSpan={headers.length} className="p-3 pl-5">
+                <div className="text-gray-700 text-sm">
+                  <span className="font-semibold mr-2">Tests:</span>
+
+                  {row[1].map((test, tid) => (
+                    <span key={tid} className="mr-3 inline-block">
+                      • {test}
+                    </span>
+                  ))}
+                </div>
+              </td>
+            </tr>
+          )}
+        </>
       ))}
     </tbody>
   </table>
 );
+
+
 
 const NoData = ({ text }) => (
   <div className="text-gray-500 text-sm italic">{text}</div>

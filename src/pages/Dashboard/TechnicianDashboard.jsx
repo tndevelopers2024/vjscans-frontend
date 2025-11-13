@@ -191,6 +191,7 @@ const TechnicianDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
 
           {/* Status */}
+           <div className="custom-select">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -203,8 +204,10 @@ const TechnicianDashboard = () => {
               </option>
             ))}
           </select>
+          </div>
 
           {/* Tests */}
+            <div className="custom-select">
           <select
             value={testFilter}
             onChange={(e) => setTestFilter(e.target.value)}
@@ -217,8 +220,9 @@ const TechnicianDashboard = () => {
             <option value="3">3 Tests</option>
             <option value="4">4 Tests</option>
           </select>
-
+</div>
           {/* Packages */}
+            <div className="custom-select">
           <select
             value={packageFilter}
             onChange={(e) => setPackageFilter(e.target.value)}
@@ -230,8 +234,10 @@ const TechnicianDashboard = () => {
             <option value="2">2 Packages</option>
             <option value="3">3 Packages</option>
           </select>
+          </div>
 
           {/* Date Filter */}
+            <div className="custom-select">
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
@@ -243,6 +249,7 @@ const TechnicianDashboard = () => {
             <option value="month">This Month</option>
             <option value="custom">Custom Range</option>
           </select>
+          </div>
         </div>
 
         {/* ✅ Custom Date Range */}

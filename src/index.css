@@ -238,3 +238,30 @@ p {
       border-radius: 15px !important;
     border: none !important;
 }
+.custom-select {
+  position: relative;
+  display: grid;
+  align-items: center;
+}
+
+.custom-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  padding-right: 40px !important; /* space for arrow */
+}
+
+/* Custom Arrow */
+.custom-select::after {
+  content: "▾"; /* dropdown arrow */
+  font-size: 18px;
+  color: #555;
+
+  position: absolute;
+  top: 45%;
+  right: 18px;
+
+  transform: translateY(-50%);
+  pointer-events: none;
+}
